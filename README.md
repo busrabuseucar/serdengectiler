@@ -1,20 +1,24 @@
 # Serdengeçtiler – Genç İHH Teşkilat Yönetim Portalı
 
-Serdengeçtiler, Genç İHH teşkilatlarında saha verilerinin düzenli şekilde toplanması, raporlanması ve yetki seviyelerine göre görüntülenmesi amacıyla geliştirilmiş bir web tabanlı MVP projesidir.
+Serdengeçtiler, Genç İHH teşkilatlarında saha faaliyetlerinin düzenli şekilde toplanması, raporlanması ve yetki seviyelerine göre görüntülenmesi amacıyla geliştirilmiş web tabanlı bir MVP projesidir.
 
 ## Projenin Amacı
 
 Genç İHH teşkilatlarında faaliyet bilgilerinin dağınık, geç ve standart dışı toplanması; merkez ve il sorumluları arasında veri takibini zorlaştırmaktadır.
 
-Bu proje ile:
+Serdengeçtiler ile:
 
-- Saha faaliyetlerinin dijital ortamda toplanması
-- Sesli veya manuel veri girişi yapılması
-- Rol bazlı erişim sağlanması
-- Raporların tek merkezden görüntülenmesi
-- Teşkilat performansının dashboard üzerinden takip edilmesi
+- Saha faaliyetleri dijital ortamda toplanır.
+- Faaliyet bilgileri manuel veya sesli olarak girilebilir.
+- Kullanıcılar görev ve yetkilerine göre farklı ekranlara erişir.
+- Raporlar tek merkez üzerinden görüntülenir.
+- Teşkilat performansı dashboard üzerinden takip edilir.
 
-amaçlanmıştır.
+## Çözülen Problem
+
+Mevcut yapıda saha verilerinin farklı kişiler ve yöntemlerle toplanması, bilgilerin geç ulaşmasına ve standart bir raporlama sisteminin oluşmamasına neden olmaktadır.
+
+Serdengeçtiler; veri girişini, raporlamayı ve teşkilat takibini tek bir dijital sistem altında birleştirerek bu süreci daha hızlı, düzenli ve izlenebilir hâle getirir.
 
 ## Çalışan Özellikler
 
@@ -25,11 +29,13 @@ amaçlanmıştır.
 - Manuel faaliyet girişi
 - Sesli veri girişi
 - Faaliyetlerin listelenmesi
-- Taslak ve rapor kaydetme
+- Taslak kaydetme
+- Rapor kaydetme
 - Dashboard ve performans göstergeleri
 - Teşkilat verilerinin özetlenmesi
-- Tarayıcı üzerinde localStorage ile veri saklama
+- Tarayıcı tarafında veri saklama
 - Responsive kullanıcı arayüzü
+- Vercel üzerinden canlı yayın
 
 ## Kullanılan Teknolojiler
 
@@ -38,23 +44,30 @@ amaçlanmıştır.
 - Vanilla JavaScript
 - Web Speech API
 - localStorage
+- GitHub
 - Vercel
 
-Projede React, Next.js, Node.js veya harici bir veritabanı kullanılmamıştır.
+Projede React, Next.js, Node.js, Firebase, Supabase veya harici bir veritabanı kullanılmamıştır.
 
-## Veri Yönetimi
+## Veri ve Durum Yönetimi
 
-Proje bir MVP olduğu için gerçek bir backend ve merkezi veritabanı kullanılmamıştır.
+Proje, Vanilla JavaScript ile DOM tabanlı durum yönetimi kullanmaktadır.
 
-Demo verileri JavaScript içerisinde mock data olarak tutulmaktadır. Kullanıcı işlemleri, taslaklar ve rapor verileri tarayıcı tarafında localStorage ile yönetilmektedir.
+Demo verileri JavaScript içerisinde mock data olarak tutulmaktadır. Kullanıcı işlemleri, taslaklar ve rapor verileri tarayıcı tarafında localStorage ile saklanmaktadır.
 
-## Yerel Kurulum
+## Proje Dosyaları
 
-Projeyi bilgisayarınıza klonlayın:
+```text
+serdenge-tiler/
+│
+├── index.html
+├── style.css
+├── app.js
+└── README.md
+Yerel Kurulum
 
-```bash
+Projeyi GitHub üzerinden klonlayın:
 git clone https://github.com/busrabuseucar/serdenge-tiler.git
-
 Proje klasörüne girin:
 
 cd serdenge-tiler
@@ -67,18 +80,25 @@ index.html dosyasını Visual Studio Code üzerindeki Live Server eklentisiyle �
 
 Alternatif olarak index.html dosyasını doğrudan tarayıcıda açabilirsiniz.
 
-Projede paket yöneticisi veya build işlemi bulunmadığı için npm install ve npm run dev komutlarına ihtiyaç yoktur.
+Projede paket yöneticisi veya build işlemi bulunmadığı için aşağıdaki komutlara ihtiyaç yoktur:
 
+npm install
+npm run dev
 Canlı Demo
 
 Projenin çalışan canlı sürümü:
 
 https://serdenge-tiler.vercel.app
 
+GitHub Deposu
+
+https://github.com/busrabuseucar/serdenge-tiler
+
 Gelecek Geliştirmeler
 Gerçek backend ve merkezi veritabanı
 Güvenli kullanıcı kimlik doğrulama sistemi
-Çevrim dışı veri girişi ve otomatik senkronizasyon
+Çevrim dışı veri girişi
+İnternet bağlantısı geldiğinde otomatik senkronizasyon
 Yapay zekâ destekli teşkilat öneri motoru
 Excel ve PDF dışa aktarma
 Gelişmiş grafikler ve karşılaştırmalı analiz
@@ -87,7 +107,7 @@ Türkiye haritası üzerinden interaktif il takibi
 Mobil uygulama desteği
 Proje Durumu
 
-Bu proje hackathon kapsamında çalışan bir MVP olarak geliştirilmiştir.
+Bu proje, hackathon kapsamında çalışan bir MVP olarak geliştirilmiştir.
 
 Geliştirici
 
