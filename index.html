@@ -1,0 +1,2025 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genç İHH Teşkilat Yönetim & Analitik Portalı</title>
+  
+  <!-- Tailwind CSS Entegrasyonu -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Kurumsal İkon Paketi -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- LaTeX Matematiksel Formül Çizim Altyapısı (KaTeX) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- 
+    ==================================================================
+    1. DOSYA: style.css (Aşağıdaki <style> etiketinin içeriğini bu dosyaya taşıyın)
+    Localinizde ayırdığınızda bu satırı kullanın: <link rel="stylesheet" href="style.css">
+    ==================================================================
+  -->
+  <style>
+    :root {
+      --color-ihh-green: #009639;
+      --color-ihh-green-hover: #008031;
+      --color-ihh-gold: #c59b27;
+    }
+    .bg-ihh-green { background-color: var(--color-ihh-green); }
+    .text-ihh-green { color: var(--color-ihh-green); }
+    .border-ihh-green { border-color: var(--color-ihh-green); }
+    .hover\:bg-ihh-green-hover:hover { background-color: var(--color-ihh-green-hover); }
+    
+    .page { display: none; }
+    .active-page { display: block; }
+    
+    .nav-link.active {
+      border-bottom: 3px solid var(--color-ihh-green);
+      color: var(--color-ihh-green);
+      font-weight: 700;
+    }
+
+    /* Mikrofon Ses Dalga Animasyonu */
+    .pulse-ring {
+      display: block;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 50%;
+      border: 4px solid var(--color-ihh-green);
+      animation: ripple 1.5s infinite linear;
+      opacity: 0;
+    }
+    @keyframes ripple {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* Fotoğraf Analizi Lazer Tarayıcı Çizgisi */
+    @keyframes scan {
+      0% { top: 0%; opacity: 1; }
+      50% { top: 100%; opacity: 1; }
+      100% { top: 0%; opacity: 1; }
+    }
+    .scanner-line {
+      animation: scan 2s linear infinite;
+    }
+
+    /* Pasta grafik dairesel alan animasyonlu geçişi */
+    .pie-chart-circle {
+      transition: background 0.4s ease-in-out;
+    }
+
+    /* Haritadaki şehir düğümleri */
+    .map-city-node {
+      transition: all 0.25s ease-in-out;
+    }
+    .map-city-node:hover {
+      fill: #f39c12 !important;
+      r: 10px !important;
+      filter: drop-shadow(0px 0px 8px rgba(243, 156, 18, 0.8));
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col font-sans text-gray-800 antialiased">
+
+  <!-- TOAST BİLDİRİM BARI -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[99999] flex flex-col gap-2 max-w-sm w-full"></div>
+
+  <!-- GENEL MODAL DİYALOG (Alert alternatifi) -->
+  <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl transform transition-all">
+      <div class="flex items-center gap-3 text-ihh-green mb-4">
+        <span class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-lg" id="modal-icon">
+          <i class="fa-solid fa-circle-info"></i>
+        </span>
+        <h3 id="modal-title" class="text-base font-bold text-gray-900">Sistem Bilgisi</h3>
+      </div>
+      <p id="modal-message" class="text-xs text-gray-600 mb-6 leading-relaxed"></p>
+      <div class="flex justify-end gap-3">
+        <button id="modal-cancel-btn" class="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Vazgeç</button>
+        <button id="modal-confirm-btn" class="px-4 py-2 bg-ihh-green text-white rounded-xl text-xs font-semibold hover:bg-ihh-green-hover transition">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASIN BÜLTENİ VE YAPAY ZEKA MODALI -->
+  <div id="ai-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[9999] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="aiModalTitle" class="text-sm font-black text-gray-800">Yapay Zeka Basın Bülteni</h3>
+        <button onclick="closeAiModal()" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-2xl max-h-[350px] overflow-y-auto text-xs text-gray-700 leading-relaxed font-serif whitespace-pre-line" id="aiModalContent">
+        Bülten oluşturuluyor...
+      </div>
+      <div class="flex justify-end gap-2 border-t pt-3">
+        <button onclick="closeAiModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-xl text-xs font-bold hover:bg-gray-300 transition">Kapat</button>
+        <button onclick="copyAiContent()" class="px-4 py-2 bg-[#009639] text-white rounded-xl text-xs font-bold hover:bg-ihh-green-hover transition flex items-center gap-1">
+          <i class="fa-solid fa-copy"></i> Metni Kopyala
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRUD DUZENLEME VE GÖRÜNTÜLEME MODALI -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/50 z-[9998] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3 border-gray-100">
+        <h3 id="editModalTitle" class="text-sm font-black text-gray-800">Faaliyet Kaydı Düzenle</h3>
+        <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Şehir</label>
+          <select id="edit-city" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 bg-white focus:outline-none"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Eğitim Birim Düzeyi</label>
+          <select id="edit-level" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 bg-white focus:outline-none">
+            <option value="Üniversite">Üniversite</option>
+            <option value="Lise">Lise</option>
+            <option value="Ortaokul">Ortaokul</option>
+            <option value="Çocuk Birimi">Çocuk Birimi</option>
+          </select>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Okul / Kurum Adı *</label>
+          <input type="text" id="edit-school" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Faaliyet Türü *</label>
+          <select id="edit-type" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 bg-white focus:outline-none">
+            <option value="Workshop">Workshop</option>
+            <option value="Komisyon Toplantısı">Komisyon Toplantısı</option>
+            <option value="Haftalık Ders">Haftalık Ders</option>
+            <option value="Eğitim">Eğitim</option>
+            <option value="Sosyal Faaliyet">Sosyal Faaliyet</option>
+            <option value="Ziyaret Programı">Ziyaret Programı</option>
+            <option value="Afet Bilinci Semineri">Afet Bilinci Semineri</option>
+            <option value="İlk Yardım Eğitimi">İlk Yardım Eğitimi</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Katılımcı Sayısı *</label>
+          <input type="number" id="edit-participants" min="0" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tarih</label>
+          <input type="date" id="edit-date" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Gönüllü Sayısı</label>
+          <input type="number" id="edit-volunteers" min="0" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Konum</label>
+          <input type="text" id="edit-location" placeholder="Örn: Genç Ofis, Mescit vb." class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none">
+        </div>
+        <div class="col-span-2">
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Açıklama / Notlar</label>
+          <textarea id="edit-notes" rows="2" class="w-full p-2.5 text-xs rounded-xl border border-gray-300 focus:outline-none"></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+        <button onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition">Vazgeç</button>
+        <button onclick="saveEditFromModal()" class="px-4 py-2 bg-ihh-green text-white rounded-xl text-xs font-semibold hover:bg-ihh-green-hover transition shadow-md">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GİRİŞ EKRANI (GÖRSEL 1000098385 VE YENİ LOGO TALEBİNE GÖRE GÜNCEL) -->
+  <div id="loginPage" class="flex-1 flex items-center justify-center p-4 bg-[#0c1611]">
+    <!-- Kalın Kurumsal Yeşil Kenarlık Bezel -->
+    <div class="bg-[#009639] p-4 rounded-[42px] shadow-2xl max-w-sm w-full">
+      <!-- İç Beyaz Kart alanı -->
+      <div class="bg-white rounded-[32px] px-6 py-8 flex flex-col items-center">
+        
+        <!-- YENİ LOGO: YEŞİL ZEMİN ÜZERİNE BEYAZ YAZI İLE İHH -->
+        <div class="w-full mb-8">
+          <svg class="w-full h-24" viewBox="0 0 320 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="310" height="90" rx="20" fill="#009639"/>
+            <g transform="translate(15, 12)">
+              <circle cx="38" cy="38" r="34" stroke="#ffffff" stroke-width="2.5" fill="none"/>
+              <circle cx="38" cy="38" r="28" stroke="#ffffff" stroke-width="1.2" fill="none" stroke-dasharray="4,2" opacity="0.8"/>
+              <path d="M38 4 C 18 20, 18 56, 38 72" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+              <path d="M38 4 C 58 20, 58 56, 38 72" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+              <path d="M10 38 Q 38 15, 66 38 Q 38 61, 10 38 Z" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.6"/>
+              <path d="M10 38 C8 24, 20 12, 35 9 C28 20, 16 30, 10 38 Z" fill="#ffffff" opacity="0.9"/>
+              <path d="M66 38 C68 24, 56 12, 41 9 C48 20, 60 30, 66 38 Z" fill="#ffffff" opacity="0.9"/>
+              <path d="M28 36 C30 28, 38 28, 40 36 C42 28, 50 28, 52 36 C47 52, 40 62, 40 61 C40 61, 33 52, 28 36 Z" fill="#ffffff"/>
+              <path d="M34 40 C35 34, 38 34, 40 40 C41 34, 44 34, 45 40 C42 48, 40 54, 40 54 C40 54, 38 48, 34 40 Z" fill="#009639"/>
+              <circle cx="40" cy="32" r="1.5" fill="#ffffff"/>
+            </g>
+            <text x="112" y="55" font-family="'Segoe UI', Arial, sans-serif" font-size="44" font-weight="950" fill="#ffffff" letter-spacing="1">iHH</text>
+            <text x="112" y="74" font-family="'Segoe UI', Arial, sans-serif" font-size="10.5" font-weight="900" fill="#ffffff" opacity="0.9" letter-spacing="0.2">İNSANİ YARDIM VAKFI</text>
+            <text x="112" y="86" font-family="'Segoe UI', Arial, sans-serif" font-size="8.5" font-weight="700" fill="#ffffff" opacity="0.7" letter-spacing="1.5">GENÇ TEŞKİLAT</text>
+          </svg>
+        </div>
+
+        <!-- Seçim Menüsü Rol Kartları (Görsel 1000098385 Detayı) -->
+        <div class="w-full space-y-3 mb-6">
+          <button id="role-pres" onclick="selectQuickRole('President', null, 'Türkiye Genel Sorumlusu', 'teskilat@demo.com', 'role-pres')" class="role-selector-btn w-full text-left text-xs bg-white hover:bg-gray-50 p-3 rounded-xl border border-gray-200 flex justify-between items-center transition font-bold text-gray-700 border-[#009639] ring-2 ring-emerald-100">
+            <span>Türkiye Genel Sorumlusu</span>
+            <span class="text-[9px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">Tüm İller Açık</span>
+          </button>
+          
+          <button id="role-rep" onclick="selectQuickRole('Representative', 'Siirt', 'İl Teşkilat Sorumlusu', 'siirt.teskilat@ihh.org.tr', 'role-rep')" class="role-selector-btn w-full text-left text-xs bg-white hover:bg-gray-50 p-3 rounded-xl border border-gray-200 flex justify-between items-center transition font-bold text-gray-700">
+            <span>İl Teşkilat Sorumlusu</span>
+            <span class="text-[9px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">Sadece İlgili İl</span>
+          </button>
+
+          <button id="role-merkez" onclick="selectQuickRole('President', 'Ankara', 'Merkez Teşkilat Sorumlusu', 'merkez.teskilat@ihh.org.tr', 'role-merkez')" class="role-selector-btn w-full text-left text-xs bg-white hover:bg-gray-50 p-3 rounded-xl border border-gray-200 flex justify-between items-center transition font-bold text-gray-700">
+            <span>Merkez Teşkilat Sorumlusu</span>
+            <span class="text-[9px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">Merkez Verileri</span>
+          </button>
+        </div>
+
+        <!-- Email & Şifre Girdileri -->
+        <div class="w-full space-y-3">
+          <input type="text" id="login-email" value="teskilat@demo.com" placeholder="Kullanıcı Adı veya E-posta" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 text-xs font-semibold text-gray-700 bg-white">
+          <input type="password" id="login-password" value="******" placeholder="Şifre" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 text-xs text-gray-700 bg-white">
+          
+          <!-- Sisteme Giriş Yap Butonu (Görsel 1000098385 ile Birebir) -->
+          <button onclick="loginUser()" class="w-full bg-[#009639] hover:bg-[#008031] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 shadow-lg">
+            <span>Sisteme Giriş Yap</span>
+            <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
+          </button>
+        </div>
+
+        <!-- Alt Telif Bilgisi -->
+        <div class="text-[10px] text-gray-400 font-semibold mt-8">
+          © 2026 Genç İHH Teşkilat Ar-Ge Departmanı. Tüm Hakları Saklıdır.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANA PORTAL -->
+  <div id="app" class="hidden flex-1 flex flex-col">
+    <!-- Üst Menü -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-20">
+        <div class="flex items-center gap-3">
+          <!-- SOL ÜST: YEŞİL BEYAZ KURUMSAL LOGO -->
+          <svg class="h-12 w-auto" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="156" height="46" rx="10" fill="#009639"/>
+            <g transform="translate(8, 7) scale(0.48)">
+              <circle cx="38" cy="38" r="34" stroke="#ffffff" stroke-width="3" fill="none"/>
+              <path d="M28 36 C30 28, 38 28, 40 36 C42 28, 50 28, 52 36 C47 52, 40 62, 40 61 C40 61, 33 52, 28 36 Z" fill="#ffffff"/>
+              <path d="M34 40 C35 34, 38 34, 40 40 C41 34, 44 34, 45 40 C42 48, 40 54, 40 54 C40 54, 38 48, 34 40 Z" fill="#009639"/>
+              <circle cx="40" cy="32" r="1.5" fill="#ffffff"/>
+            </g>
+            <text x="54" y="28" font-family="'Segoe UI', Arial, sans-serif" font-size="22" font-weight="950" fill="#ffffff">iHH</text>
+            <text x="54" y="38" font-family="'Segoe UI', Arial, sans-serif" font-size="5.5" font-weight="900" fill="#ffffff" opacity="0.9" letter-spacing="0.1">İNSANİ YARDIM VAKFI</text>
+          </svg>
+          <div class="hidden lg:flex flex-col border-l border-gray-200 pl-3">
+            <span class="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest">Haftalık Rapor</span>
+            <span class="text-[10px] text-ihh-green font-black">Teşkilat Portalı</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <!-- Teşkilat Başarı Rozetleri -->
+          <div class="hidden md:flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-150" id="badges-container">
+            <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider">Teşkilat Rozetleri:</span>
+            <div class="flex gap-1.5" id="header-badges"></div>
+          </div>
+
+          <div class="text-right">
+            <span id="header-name" class="text-xs font-black text-gray-800 block">-</span>
+            <span id="header-role" class="text-[9px] text-ihh-green font-bold uppercase tracking-wider">-</span>
+          </div>
+          <button onclick="logoutUser()" class="text-gray-400 hover:text-red-500 transition text-sm p-2"><i class="fa-solid fa-power-off text-lg"></i></button>
+        </div>
+      </div>
+
+      <!-- Navigasyon Sekmeleri -->
+      <div class="bg-gray-50 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4">
+          <nav class="flex space-x-6 overflow-x-auto">
+            <button class="nav-link active py-4 text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap" data-page="dashboardPage">
+              <i class="fa-solid fa-map-location-dot"></i> Teşkilat Karnesi & Türkiye Haritası
+            </button>
+            <button class="nav-link py-4 text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap" data-page="reportFormPage">
+              <i class="fa-solid fa-microphone-lines"></i> AI Sesli NLP & Doğrulama Laboratuvarı
+            </button>
+            <button class="nav-link py-4 text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap" data-page="managementPage">
+              <i class="fa-solid fa-database"></i> Veri Yönetimi & PDF/Excel İndir (CRUD)
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- İÇERİK ALANI -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+
+      <!-- ================= SEKME 1: TEŞKİLAT KARNESİ & COĞRAFİ HARİTA ================= -->
+      <div id="dashboardPage" class="page active-page space-y-6">
+        
+        <!-- ÜST ANKET / FİLTRELEME ALANI (Tüm İller, Üniversiteler, Liseler, Ortaokullar ve Etkinlikler Dahil) -->
+        <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">1. Şehir Seçimi (81 İl Kapsamlı)</label>
+            <select id="dash-filter-city" onchange="onCityFilterChanged()" class="w-full p-2.5 text-xs rounded-xl border border-gray-200 bg-white focus:outline-none font-semibold text-gray-700">
+              <option value="Tümü">Türkiye Geneli (Tümü)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">2. Birim Seçimi</label>
+            <select id="dash-filter-level" onchange="onBirimFilterChanged()" class="w-full p-2.5 text-xs rounded-xl border border-gray-200 bg-white focus:outline-none font-semibold text-gray-700">
+              <option value="Tümü">Birimlerin Tümü</option>
+              <option value="Üniversite">Üniversite Birimi</option>
+              <option value="Lise">Lise Birimi</option>
+              <option value="Ortaokul">Ortaokul Birimi</option>
+              <option value="Çocuk Birimi">Çocuk Birimi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">3. Kurum / Okul Listesi (Eksiksiz)</label>
+            <select id="dash-filter-school" onchange="onDashboardFiltersChanged()" class="w-full p-2.5 text-xs rounded-xl border border-gray-200 bg-white focus:outline-none font-semibold text-gray-700">
+              <option value="Tümü">İlgili Birimdeki Tüm Okullar</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">4. Faaliyet Türü Seçimi</label>
+            <select id="dash-filter-type" onchange="onDashboardFiltersChanged()" class="w-full p-2.5 text-xs rounded-xl border border-gray-200 bg-white focus:outline-none font-semibold text-gray-700">
+              <option value="Tümü">Tüm Faaliyetler</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Komisyon Toplantısı">Komisyon Toplantısı</option>
+              <option value="Haftalık Ders">Haftalık Ders</option>
+              <option value="Eğitim">Eğitim</option>
+              <option value="Sosyal Faaliyet">Sosyal Faaliyet</option>
+              <option value="Ziyaret Programı">Ziyaret Programı</option>
+              <option value="Afet Bilinci Semineri">Afet Bilinci Semineri</option>
+              <option value="İlk Yardım Eğitimi">İlk Yardım Eğitimi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Faaliyet Tarihi</label>
+            <input type="date" id="dash-start-date" value="2026-07-18" onchange="onDashboardFiltersChanged()" class="w-full p-2 text-xs rounded-xl border border-gray-200 bg-white font-semibold text-gray-700">
+          </div>
+        </div>
+
+        <!-- İstatistik Kartları -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-2xl border border-gray-155 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Seçili Şehir / Kurum</p>
+              <h3 id="dashCityName" class="text-sm font-black text-gray-800">İstanbul</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center text-lg"><i class="fa-solid fa-map-location-dot"></i></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-155 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Dinamik Karne Notu</p>
+              <h3 id="dashScore" class="text-sm font-black text-ihh-green">16.67 Puan</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-green-100 text-ihh-green flex items-center justify-center text-lg"><i class="fa-solid fa-certificate"></i></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-155 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Planlanan Etkinlik</p>
+              <h3 id="dashTotalActivities" class="text-sm font-black text-gray-800">2</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-calendar-days"></i></div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-155 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-gray-400 uppercase">Katılımcı Ulaşım Hacmi</p>
+              <h3 id="dashTotalParticipants" class="text-sm font-black text-gray-800">95</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg"><i class="fa-solid fa-fingerprint"></i></div>
+          </div>
+        </div>
+
+        <!-- Türkiye Haritası (81 İl Kapsamlı Bölgesel İnteraktif Düğüm Modülü) -->
+        <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b pb-3 border-gray-100">
+            <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider">İl Bazlı İnteraktif Teşkilat Haritası (81 İl)</h3>
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Şehirlere Tıklayarak Detaylı Filtreleyin</span>
+          </div>
+          <div class="bg-gray-50 rounded-2xl p-4 flex flex-col items-center justify-center border border-gray-100 relative shadow-inner min-h-[320px]">
+            <svg id="turkey-map-svg" class="w-full h-auto max-h-[320px]" viewBox="0 0 820 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g opacity="0.1" stroke="#009639" stroke-width="1.2">
+                <!-- Sınır Hatları Çizgisi -->
+                <path d="M40 40 L 220 40 L 200 120 L 110 160 L 40 100 Z" fill="#cbd5e1" />
+                <path d="M40 100 L 110 160 L 150 260 L 50 300 L 20 200 Z" fill="#cbd5e1" />
+                <path d="M220 40 L 450 60 L 480 200 L 320 250 L 200 120 Z" fill="#cbd5e1" />
+                <path d="M150 260 L 320 250 L 540 260 L 500 320 L 300 320 L 50 300 Z" fill="#cbd5e1" />
+                <path d="M450 60 L 700 80 L 700 150 L 480 200 L 450 60 Z" fill="#cbd5e1" />
+                <path d="M480 200 L 700 150 L 780 180 L 780 280 L 600 280 Z" fill="#cbd5e1" />
+                <path d="M540 260 L 600 280 L 780 280 L 750 350 L 520 350 Z" fill="#cbd5e1" />
+              </g>
+              <g id="map-cities-nodes-group"></g>
+            </svg>
+            <div class="text-[10px] text-gray-400 mt-2 flex items-center gap-2">
+              <i class="fa-solid fa-circle text-emerald-500 animate-pulse"></i> Etkin şehirler yeşil renkte parlayarak boyutlanır.
+            </div>
+          </div>
+        </div>
+
+        <!-- ÜÇLÜ GELİŞMİŞ GRAFİK VE ANALİZ PANELİ (Seçimlerinize %100 Canlı Duyarlı) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Sol & Orta Kolon: Çizgi ve Sütun Grafikleri -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <!-- 1. Çizgi Grafiği: Haftalık Katılım Artış Eğilimi -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+              <div class="flex justify-between items-center border-b pb-3 border-gray-100">
+                <div>
+                  <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider">Haftalık Katılım Eğilim Analitiği (Çizgi Grafik)</h3>
+                  <p class="text-[10px] text-gray-400 font-semibold" id="trend-subtitle">Ankara ili Üniversite birimi - Ankara Üniversitesi</p>
+                </div>
+                <span class="text-[10px] text-[#009639] bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200 font-black" id="trend-ratio-percentage">+24% Artış</span>
+              </div>
+              
+              <div class="h-56 w-full relative pt-4">
+                <svg class="w-full h-full" viewBox="0 0 600 180" id="trend-svg-chart">
+                  <!-- JS ile Dinamik Çizgi Çizilir -->
+                </svg>
+              </div>
+            </div>
+
+            <!-- 2. Sütun Grafiği: Aylık Katılım Karşılaştırma -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+              <div class="flex justify-between items-center border-b pb-3 border-gray-100">
+                <div>
+                  <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider">Aylık Katılımcı Karşılaştırma Analitiği (Sütun Grafik)</h3>
+                  <p class="text-[10px] text-gray-400 font-semibold">Ocak - Haziran Dönemi Karşılaştırmalı Dağılım</p>
+                </div>
+                <span class="text-[10px] text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 font-black">Canlı Sütunlar</span>
+              </div>
+
+              <div class="h-56 w-full relative pt-4">
+                <svg class="w-full h-full" viewBox="0 0 600 180" id="bar-svg-chart">
+                  <!-- JS ile Dinamik Sütunlar Çizilir -->
+                </svg>
+                <div class="flex justify-between text-[9px] text-gray-400 font-bold mt-2 px-1">
+                  <span id="month-lbl-1">Ocak</span>
+                  <span id="month-lbl-2">Şubat</span>
+                  <span id="month-lbl-3">Mart</span>
+                  <span id="month-lbl-4">Nisan</span>
+                  <span id="month-lbl-5">Mayıs</span>
+                  <span id="month-lbl-6">Haziran</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Sağ Kolon: Pasta Grafiği ve Matematiksel Karne Kartı -->
+          <div class="space-y-6">
+            
+            <!-- 3. Pasta Grafiği: Katılımcı Dağılım Payı -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+              <div class="border-b pb-3 border-gray-100">
+                <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider">Katılımcı Dağılım Payı (Pasta Grafik)</h3>
+                <p class="text-[10px] text-gray-400 font-semibold">Seçilen Kriter Altındaki Hedef Kitle Oranı</p>
+              </div>
+
+              <div class="flex flex-col items-center justify-center py-2 space-y-4">
+                <div id="pie-chart-render" class="w-32 h-32 rounded-full shadow-md border-4 border-white pie-chart-circle" style="background: conic-gradient(#009639 0% 40%, #f39c12 40% 70%, #3b82f6 70% 100%);"></div>
+                
+                <div class="w-full space-y-2 text-xs">
+                  <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full bg-[#009639]"></span>
+                      <span class="font-medium text-gray-600">Öğrenciler:</span>
+                    </div>
+                    <span class="font-black text-gray-800" id="pie-lbl-students">40%</span>
+                  </div>
+                  <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full bg-[#f39c12]"></span>
+                      <span class="font-medium text-gray-600">Aktif Gönüllüler:</span>
+                    </div>
+                    <span class="font-black text-gray-800" id="pie-lbl-volunteers">30%</span>
+                  </div>
+                  <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full bg-[#3b82f6]"></span>
+                      <span class="font-medium text-gray-600">Teşkilat Mensupları:</span>
+                    </div>
+                    <span class="font-black text-gray-800" id="pie-lbl-members">30%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Matematiksel Karne Kartı & KaTeX (Formül Birebir Muhafaza Edildi) -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+              <div class="border-b pb-3 border-gray-100">
+                <h4 class="text-xs font-black text-gray-800 uppercase tracking-wider">Teşkilat Karne Derecesi Hesaplama</h4>
+                <p class="text-[9px] text-gray-400 font-semibold">Resmi Akademik Formül</p>
+              </div>
+
+              <div class="bg-gray-50 p-3 rounded-xl border border-gray-150">
+                <span class="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider block mb-1">Karne Formülü ($LaTeX$):</span>
+                <div class="font-serif text-xs text-gray-700 text-center py-2 select-all font-semibold" id="katex-formula">
+                  $$P_{karne} = \left( \frac{\sum E_{aktif}}{E_{hedef}} \right) \times 100$$
+                </div>
+              </div>
+
+              <!-- AI Öneri Butonu -->
+              <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-2.5">
+                <p class="text-[11px] text-gray-300 leading-relaxed font-medium">
+                  Karar Motoru Önerisi: Kriterlerinize uygun ek faaliyetler planlayarak haftalık katılım eğrisini yukarı taşıyabilirsiniz.
+                </p>
+                <button onclick="applyAiRecommendation()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-black uppercase tracking-wider transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-bolt"></i> Önerilen Etkinliği Anlık Planla
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ================= SEKME 2: YENİ RAPOR FORM ================= -->
+      <div id="reportFormPage" class="page space-y-6">
+        
+        <!-- ÜST ALAN: SESLİ YANITLA (NLP ANALİZ KARTI) -->
+        <div class="bg-[#f0f9f4] border border-emerald-100 p-6 rounded-3xl shadow-sm space-y-4">
+          <div class="flex items-center gap-4">
+            <div class="relative flex-shrink-0">
+              <div id="mic-pulse" class="hidden">
+                <span class="pulse-ring"></span>
+              </div>
+              <button id="mic-btn" onclick="toggleSpeech()" class="w-16 h-16 bg-[#009639] hover:bg-ihh-green-hover text-white rounded-full flex items-center justify-center text-2xl transition shadow-lg relative z-10">
+                <i id="mic-icon" class="fa-solid fa-microphone"></i>
+              </button>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-gray-850">Sesli Yanıtla</h3>
+              <p class="text-xs text-gray-500 mt-1 leading-relaxed">Mikrofona bas ve bu haftaki faaliyetlerini doğal dilde anlat.</p>
+              <span id="mic-status" class="inline-block mt-1.5 text-[9px] font-black tracking-widest text-gray-500 bg-gray-200/60 px-2 py-0.5 rounded uppercase">Hazır</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+            <button onclick="fillSampleNlpText()" class="py-3 bg-white hover:bg-gray-50 text-gray-700 border rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+              Örnek Metin Doldur
+            </button>
+            
+            <button onclick="analyzeNlpWithGemini()" class="py-3 bg-[#009639] hover:bg-[#008031] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
+              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Çözümle (Yapay Zeka)
+            </button>
+          </div>
+
+          <textarea id="nlp-text-input" rows="3" placeholder="Konuşma metni burada görünecek veya buraya kendiniz de yazıp Çözümle butonuna basabilirsiniz..." class="w-full p-4 text-xs rounded-xl border border-emerald-100 focus:outline-none focus:ring-1 focus:ring-green-500 bg-white shadow-inner font-medium text-gray-700"></textarea>
+        </div>
+
+        <!-- İLERLEME ÇUBUĞU -->
+        <div class="bg-white p-5 rounded-2xl border border-gray-150 shadow-sm space-y-2">
+          <div class="flex justify-between items-center text-xs font-extrabold text-gray-400 uppercase tracking-wider">
+            <span>Rapor Tamamlanma Oranı</span>
+            <span id="completion-ratio-text" class="text-xs font-black text-[#009639]">50%</span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+            <div id="completion-ratio-bar" class="bg-[#009639] h-full transition-all duration-500" style="width: 50%"></div>
+          </div>
+        </div>
+
+        <!-- FOTOĞRAF ANALİZİ VE KATILIMCI DOĞRULAMA -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+          <div class="flex items-center gap-2.5 text-gray-800">
+            <span class="text-ihh-green text-xl"><i class="fa-solid fa-camera"></i></span>
+            <h3 class="text-sm font-black uppercase tracking-wider">Fotoğraf Analizi ve Katılımcı Doğrulama</h3>
+          </div>
+          <p class="text-xs text-gray-500 leading-relaxed">
+            Jürinin en çok sorduğu <strong class="text-gray-755">"Veri doğruluğunu nasıl denetliyorsunuz?"</strong> sorusunun yanıtı! Etkinlik fotoğrafını yükleyin; yerel algoritmamız yüzleri saysın.
+          </p>
+
+          <div class="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition relative overflow-hidden group">
+            <input type="file" id="cv-image-upload" onchange="simulatePhotoAnalysis()" class="hidden">
+            <div id="scanning-laser" class="hidden absolute left-0 right-0 h-1 bg-red-500 scanner-line z-10 shadow-lg"></div>
+            
+            <div class="flex flex-col items-center text-center space-y-2" id="cv-upload-placeholder">
+              <span class="text-3xl text-gray-400 group-hover:text-[#009639] transition"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+              <p class="text-xs font-bold text-gray-600">FOTOĞRAF YÜKLEYİN VEYA SÜRÜKLEYİN</p>
+            </div>
+
+            <!-- Analiz Sonucu -->
+            <div id="cv-analysis-result" class="hidden text-center space-y-2">
+              <span class="text-3xl text-[#009639]"><i class="fa-solid fa-circle-check"></i></span>
+              <p class="text-xs font-black text-gray-800">BİLGİSAYARLI GÖRÜ ANALİZİ TAMAMLANDI</p>
+              <div class="p-3 bg-green-50 text-green-800 border border-green-200 rounded-xl text-xs font-bold inline-block">
+                Fotoğrafta <span id="detected-faces-count" class="text-sm font-black">15</span> aktif katılımcı tespit edilerek onaylandı!
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-center">
+            <button onclick="triggerImageUpload()" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 border rounded-xl text-xs font-black flex items-center gap-2 transition">
+              <i class="fa-solid fa-image"></i> Fotoğraf Seç / Yükle
+            </button>
+          </div>
+        </div>
+
+        <!-- DİNAMİK FORM ALANI (GÖRSEL 1000098380 & 1000098381) -->
+        <div class="space-y-4" id="report-form-container">
+          <!-- Kartlar Javascript ile eklenecektir -->
+        </div>
+
+        <!-- Alt İşlem Butonları (Görsel 1000098381 ile Birebir) -->
+        <div class="flex flex-col gap-3 pt-4 border-t border-gray-200">
+          <button onclick="addNewBlankFormCard()" class="w-full py-3 border border-[#009639] text-[#009639] hover:bg-green-50 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 bg-white">
+            <i class="fa-solid fa-plus text-[10px]"></i> Faaliyet Ekle
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="saveDraft()" class="py-3.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Taslak Kaydet
+          </button>
+          
+          <button onclick="submitFinalReport()" class="py-3.5 bg-[#009639] hover:bg-[#008031] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md">
+            <i class="fa-solid fa-paper-plane"></i> Onaya Gönder
+          </button>
+        </div>
+
+        <!-- Sayfa Alt Bilgisi -->
+        <div class="text-center text-[10px] text-gray-400 pt-4 border-t">
+          © 2026 Genç İHH Bilgi İşlem Birimi. Tüm Hakları Saklıdır.
+        </div>
+      </div>
+
+      <!-- ================= SEKME 3: FAALİYET YÖNETİMİ (CRUD & EXCEL) ================= -->
+      <div id="managementPage" class="page space-y-6">
+        
+        <!-- ÜST BAŞLIK VE KONTROLLER -->
+        <div class="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm space-y-5">
+          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <h3 class="text-base font-black text-gray-800 uppercase tracking-wide">Veri Yönetim Havuzu & Veritabanı (CRUD)</h3>
+              <p class="text-xs text-gray-400 mt-1">Sistemdeki tüm verilere müdahale edin. Düzenleme veya ekleme yaptığınızda tüm harita ve göstergeler otomatik güncellenir.</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+              <button onclick="openAddRecordModal()" class="px-4 py-2.5 bg-[#009639] hover:bg-[#008031] text-white rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i> YENİ RAPOR KAYDINI EKLE
+              </button>
+              <button onclick="exportToExcel()" class="px-4 py-2.5 bg-[#f8fafc] border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-excel text-emerald-600"></i> EXCEL İNDİR
+              </button>
+              <button onclick="exportToCsv()" class="px-4 py-2.5 bg-[#f8fafc] border border-gray-200 hover:bg-gray-50 text-gray-755 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-csv text-orange-500"></i> CSV İNDİR
+              </button>
+              <button onclick="generatePdfReport()" class="px-4 py-2.5 bg-rose-50 border border-rose-100 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-pdf"></i> PDF RAPORLA
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtre Seçim Grubu -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-100 pt-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Şehir Seçimi (81 İl)</label>
+              <select id="filter-city" onchange="applyFiltersAndRender()" class="w-full p-2.5 text-xs rounded-xl border bg-gray-50 focus:outline-none font-semibold text-gray-700"></select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Birim Seçimi</label>
+              <select id="filter-level" onchange="applyFiltersAndRender()" class="w-full p-2.5 text-xs rounded-xl border bg-gray-50 focus:outline-none font-semibold text-gray-700">
+                <option value="Tümü">Tümü</option>
+                <option value="Üniversite">Üniversite</option>
+                <option value="Lise">Lise</option>
+                <option value="Ortaokul">Ortaokul</option>
+                <option value="Çocuk Birimi">Çocuk Birimi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">Arama Kelimesi (Kurum / Okul Adı)</label>
+              <div class="relative">
+                <input type="text" id="search-school" oninput="applyFiltersAndRender()" placeholder="Aranacak okulu yazın..." class="w-full p-2.5 pl-8 text-xs rounded-xl border bg-gray-50 focus:outline-none font-semibold text-gray-700">
+                <span class="absolute left-3 top-3 text-gray-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Faaliyet Tablosu -->
+          <div class="overflow-x-auto">
+            <div class="flex justify-between items-center mb-2 px-1">
+              <span class="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Haftalık Rapor Veritabanı</span>
+              <span id="record-count-badge" class="text-[10px] font-bold text-ihh-green bg-green-50 px-2 py-0.5 rounded-full border border-green-100">11 Kayıt Listeleniyor</span>
+            </div>
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-gray-400 font-extrabold border-b border-gray-150 uppercase tracking-wider">
+                  <th class="py-3">Dönem / Tarih</th>
+                  <th class="py-3">Teşkilat Şehir</th>
+                  <th class="py-3">Eğitim Düzeyi</th>
+                  <th class="py-3">Kurum / Okul Adı</th>
+                  <th class="py-3">Faaliyet Türü</th>
+                  <th class="py-3">Katılımcı</th>
+                  <th class="py-3 text-right">İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="crud-table-body" class="divide-y divide-gray-100 text-gray-700">
+                <!-- Dinamik veri satırları -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+      <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
+        <p class="text-[11px] text-gray-400 font-bold tracking-wider">© 2026 Genç İHH Teşkilat Birimi. Tüm Hakları Saklıdır.</p>
+        <p class="text-[9px] text-gray-300 font-medium">Bu sistem, yetkisiz veri erişimini (IDOR) engellemek amacıyla rol ve şehir bazlı izole edilmiştir.</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- 
+    ==================================================================
+    2. DOSYA: app.js (Aşağıdaki <script> etiketinin içeriğini bu dosyaya taşıyın)
+    Localinizde ayırdığınızda bu satırı kullanın: <script src="app.js" defer></script>
+    ==================================================================
+  -->
+  <script>
+    // ----------------- GLOBAL DEVLET VE VERİTABANI YÖNETİMİ -----------------
+    const API_KEY = ""; // Gemini API anahtarı boş bırakıldı, çalışma ortamından devralınacaktır.
+    let recognition;
+    let isRecording = false;
+    let isSpeechEnabled = false; // Tek bir let tanımı ile korunuyor
+    let currentUser = {
+      role: 'President', 
+      city_id: null,
+      displayName: 'Türkiye Genel Sorumlusu'
+    };
+
+    // Ana Veritabanı (Mock Teşkilat Verileri)
+    let dbActivities = [
+      { id: "act_101", dateText: "13-19 Temmuz 2026", date: "2026-07-15", city: "Siirt", district: "Merkez", level: "Lise", school: "Siirt Anadolu Lisesi", location: "Kütüphane", type: "Komisyon Toplantısı", participants: 12, volunteers: 3, notes: "Haftalık komisyon planlama toplantısı." },
+      { id: "act_102", dateText: "13-19 Temmuz 2026", date: "2026-07-16", city: "İstanbul", district: "Fatih", level: "Üniversite", school: "İstanbul Üniversitesi", location: "Genç Ofis", type: "Haftalık Eğitim", participants: 45, volunteers: 5, notes: "Üniversite gençliği ile kitap tahlili." },
+      { id: "act_103", dateText: "13-19 Temmuz 2026", date: "2026-07-14", city: "Ankara", district: "Çankaya", level: "Üniversite", school: "Hacettepe Üniversitesi", location: "Teşkilat Salonu", type: "Workshop", participants: 60, volunteers: 8, notes: "Akademik proje workshop çalışması yapıldı." },
+      { id: "act_104", dateText: "06-12 Temmuz 2026", date: "2026-07-08", city: "İstanbul", district: "Üsküdar", level: "Lise", school: "İstanbul Erkek Lisesi", location: "Sınıf", type: "Haftalık Eğitim", participants: 50, volunteers: 4, notes: "Değerler eğitimi çalışması." },
+      { id: "act_105", dateText: "06-12 Temmuz 2026", date: "2026-07-09", city: "Bursa", district: "Osmangazi", level: "Ortaokul", school: "Osmangazi Ortaokulu", location: "Çok Amaçlı Salon", type: "Ziyaret Programı", date: "2026-07-10", participants: 18, volunteers: 2, notes: "Okul idaresi koordinasyon ziyareti." }
+    ];
+
+    // Aktif form kartları dizisi
+    let activeFormCards = [];
+
+    // İl listesi
+    const TURKEY_CITIES = [
+      "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir", "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman", "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
+    ].sort((a,b) => a.localeCompare(b, 'tr'));
+
+    // Coğrafi 81 İl Koordinatları
+    const CITIES_COORDS = [
+      { name: "Adana", x: 420, y: 280 }, { name: "Adıyaman", x: 530, y: 250 }, { name: "Afyonkarahisar", x: 220, y: 190 },
+      { name: "Ağrı", x: 740, y: 130 }, { name: "Amasya", x: 460, y: 100 }, { name: "Ankara", x: 320, y: 140 },
+      { name: "Antalya", x: 230, y: 280 }, { name: "Artvin", x: 700, y: 60 }, { name: "Aydın", x: 100, y: 230 },
+      { name: "Balıkesir", x: 100, y: 120 }, { name: "Bilecik", x: 190, y: 120 }, { name: "Bingöl", x: 640, y: 180 },
+      { name: "Bitlis", x: 710, y: 200 }, { name: "Bolu", x: 270, y: 100 }, { name: "Burdur", x: 200, y: 250 },
+      { name: "Bursa", x: 160, y: 110 }, { name: "Çanakkale", x: 60, y: 90 }, { name: "Çankırı", x: 350, y: 100 },
+      { name: "Çorum", x: 410, y: 100 }, { name: "Denizli", x: 140, y: 230 }, { name: "Diyarbakır", x: 600, y: 230 },
+      { name: "Edirne", x: 60, y: 40 }, { name: "Elazığ", x: 580, y: 200 }, { name: "Erzincan", x: 580, y: 140 },
+      { name: "Erzurum", x: 680, y: 130 }, { name: "Eskişehir", x: 240, y: 140 }, { name: "Gaziantep", x: 490, y: 290 },
+      { name: "Giresun", x: 550, y: 90 }, { name: "Gümüşhane", x: 590, y: 100 }, { name: "Hakkari", x: 780, y: 240 },
+      { name: "Hatay", x: 440, y: 330 }, { name: "Isparta", x: 210, y: 230 }, { name: "Mersin", x: 360, y: 290 },
+      { name: "İstanbul", x: 150, y: 70 }, { name: "İzmir", x: 70, y: 190 }, { name: "Kars", x: 750, y: 80 },
+      { name: "Kastamonu", x: 340, y: 70 }, { name: "Kayseri", x: 420, y: 190 }, { name: "Kırklareli", x: 80, y: 20 },
+      { name: "Kırşehir", x: 360, y: 170 }, { name: "Kocaeli", x: 190, y: 80 }, { name: "Konya", x: 310, y: 230 },
+      { name: "Kütahya", x: 180, y: 160 }, { name: "Malatya", x: 520, y: 200 }, { name: "Manisa", x: 90, y: 170 },
+      { name: "Kahramanmaraş", x: 470, y: 240 }, { name: "Mardin", x: 660, y: 260 }, { name: "Muğla", x: 100, y: 270 },
+      { name: "Muş", x: 690, y: 170 }, { name: "Nevşehir", x: 370, y: 190 }, { name: "Niğde", x: 370, y: 220 },
+      { name: "Ordu", x: 510, y: 90 }, { name: "Rize", x: 650, y: 70 }, { name: "Sakarya", x: 210, y: 90 },
+      { name: "Samsun", x: 450, y: 70 }, { name: "Siirt", x: 720, y: 230 }, { name: "Sinop", x: 400, y: 50 },
+      { name: "Sivas", x: 480, y: 150 }, { name: "Tekirdağ", x: 100, y: 60 }, { name: "Tokat", x: 460, y: 120 },
+      { name: "Trabzon", x: 600, y: 80 }, { name: "Tunceli", x: 620, y: 160 }, { name: "Şanlıurfa", x: 550, y: 290 },
+      { name: "Uşak", x: 140, y: 180 }, { name: "Van", x: 770, y: 180 }, { name: "Yozgat", x: 400, y: 140 },
+      { name: "Zonguldak", x: 280, y: 70 }, { name: "Aksaray", x: 350, y: 210 }, { name: "Bayburt", x: 630, y: 110 },
+      { name: "Karaman", x: 320, y: 270 }, { name: "Kırıkkale", x: 350, y: 140 }, { name: "Batman", x: 680, y: 230 },
+      { name: "Şırnak", x: 740, y: 260 }, { name: "Bartın", x: 300, y: 60 }, { name: "Ardahan", x: 750, y: 50 },
+      { name: "Iğdır", x: 790, y: 110 }, { name: "Yalova", x: 160, y: 90 }, { name: "Karabük", x: 310, y: 80 },
+      { name: "Kilis", x: 500, y: 310 }, { name: "Osmaniye", x: 450, y: 280 }, { name: "Düzce", x: 250, y: 90 }
+    ];
+
+    // İL TEŞKİLATLARI İÇİN DETAYLI VE RESMİ ÜNİVERSİTE / OKUL VERİTABANI
+    const REAL_CITY_DATA = {
+      "İstanbul": {
+        "Üniversite": ["İstanbul Üniversitesi", "Marmara Üniversitesi", "Boğaziçi Üniversitesi", "İstanbul Teknik Üniversitesi", "Yıldız Teknik Üniversitesi", "Galatasaray Üniversitesi", "Genç İHH İstanbul Eğitim Akademisi"],
+        "Lise": ["Galatasaray Lisesi", "İstanbul Erkek Lisesi", "Kabataş Erkek Lisesi", "Cağaloğlu Anadolu Lisesi", "Kadıköy Anadolu Lisesi", "Fatih Kız Anadolu İmam Hatip Lisesi"],
+        "Ortaokul": ["Fatih Ortaokulu", "Beşiktaş Atatürk Ortaokulu", "Kadıköy İmam Hatip Ortaokulu", "Üsküdar Merkez Ortaokulu"],
+        "Çocuk Birimi": ["Fatih Çocuk Gelişim Merkezi", "Başakşehir Çocuk Kulübü"]
+      },
+      "Ankara": {
+        "Üniversite": ["Hacettepe Üniversitesi", "Ankara Üniversitesi", "Orta Doğu Teknik Üniversitesi", "Gazi Üniversitesi", "Bilkent Üniversitesi", "Ankara Yıldırım Beyazıt Üniversitesi", "Genç İHH Ankara Eğitim Akademisi"],
+        "Lise": ["Ankara Atatürk Lisesi", "Gazi Anadolu Lisesi", "Ankara Fen Lisesi", "Tevfik İleri Anadolu İmam Hatip Lisesi", "Keçiören Anadolu Lisesi"],
+        "Ortaokul": ["Keçiören İmam Hatip Ortaokulu", "Yenimahalle Merkez Ortaokulu", "Çankaya Atatürk Ortaokulu", "Mamak Ortaokulu"],
+        "Çocuk Birimi": ["Kızılcahamam Çocuk Birimi", "Altındağ Çocuk Kulübü"]
+      },
+      "İzmir": {
+        "Üniversite": ["Ege Üniversitesi", "Dokuz Eylül Üniversitesi", "İzmir Yüksek Teknoloji Enstitüsü", "Yaşar Üniversitesi", "Katip Çelebi Üniversitesi", "Genç İHH İzmir Eğitim Akademisi"],
+        "Lise": ["İzmir Fen Lisesi", "Bornova Anadolu Lisesi", "İzmir Atatürk Lisesi", "Konak Anadolu İmam Hatip Lisesi"],
+        "Ortaokul": ["Konak Merkez Ortaokulu", "Bornova Ortaokulu", "Karşıyaka İmam Hatip Ortaokulu"],
+        "Çocuk Birimi": ["Buca Çocuk Birimi", "Bornova Çocuk Akademisi"]
+      },
+      "Siirt": {
+        "Üniversite": ["Siirt Üniversitesi", "Genç İHH Siirt Akademisi", "Siirt Yüksek Öğrenim Vakfı Merkez Birimi"],
+        "Lise": ["Siirt Anadolu Lisesi", "Siirt Fen Lisesi", "Siirt Sosyal Bilimler Lisesi", "Siirt Selami Değer Anadolu Lisesi", "Siirt Anadolu İmam Hatip Lisesi"],
+        "Ortaokul": ["Siirt Merkez İmam Hatip Ortaokulu", "Sancak Ortaokulu", "14 Eylül Ortaokulu", "Siirt Çocuk Gelişim Ortaokulu"],
+        "Çocuk Birimi": ["Siirt Yetim ve Çocuk Merkezi", "Merkez Çocuk Oyun Atölyesi"]
+      },
+      "Bursa": {
+        "Üniversite": ["Bursa Uludağ Üniversitesi", "Bursa Teknik Üniversitesi", "Genç İHH Bursa Eğitim Akademisi"],
+        "Lise": ["Bursa Anadolu Lisesi", "Bursa Erkek Lisesi", "Tophane Mesleki ve Teknik Anadolu Lisesi", "Bursa Merkez Anadolu İmam Hatip Lisesi"],
+        "Ortaokul": ["Osmangazi Ortaokulu", "Nilüfer İmam Hatip Ortaokulu", "Yıldırım Merkez Ortaokulu"],
+        "Çocuk Birimi": ["Osmangazi Çocuk Birimi", "Yıldırım Çocuk Atölyesi"]
+      }
+    };
+
+    // 81 İle Ait Üniversite ve Okul Listesi Çekme / Dinamik Üretme Algoritması
+    function getSchoolsForCity(city, level) {
+      if (!city || city === "Tümü") return ["Lütfen önce şehir seçin"];
+      
+      if (REAL_CITY_DATA[city] && REAL_CITY_DATA[city][level]) {
+        return REAL_CITY_DATA[city][level];
+      }
+      
+      const universities = [
+        `${city} Üniversitesi`,
+        `${city} Teknik Üniversitesi`,
+        `Genç İHH ${city} Eğitim Akademisi`,
+        `${city} Bilim ve Teknoloji Üniversitesi`
+      ];
+      
+      const highSchools = [
+        `${city} Anadolu Lisesi`,
+        `${city} Fen Lisesi`,
+        `${city} Anadolu İmam Hatip Lisesi`,
+        `${city} Sosyal Bilimler Lisesi`,
+        `Genç İHH ${city} Gönüllü Lisesi`
+      ];
+      
+      const middleSchools = [
+        `${city} İmam Hatip Ortaokulu`,
+        `${city} Merkez Ortaokulu`,
+        `${city} Cumhuriyet Ortaokulu`,
+        `Genç İHH ${city} Çocuk Ortaokulu`
+      ];
+
+      if (level === "Üniversite") return universities;
+      if (level === "Lise") return highSchools;
+      if (level === "Ortaokul" || level === "Çocuk Birimi") return middleSchools;
+      
+      return [...universities, ...highSchools, ...middleSchools];
+    }
+
+    // Seçilen Tarih Haftasına Ait Dinamik Aylık Kaydırma Kütüphanesi
+    function get6MonthsLeadingTo(dateString) {
+      const date = new Date(dateString || "2026-07-18");
+      let year = date.getFullYear();
+      let monthIndex = date.getMonth(); 
+      
+      const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+      
+      let months = [];
+      for (let i = 5; i >= 0; i--) {
+        let m = monthIndex - i;
+        let y = year;
+        if (m < 0) {
+          m += 12;
+          y -= 1;
+        }
+        months.push({ name: monthNames[m], label: `${monthNames[m]} '${String(y).substring(2)}` });
+      }
+      return months;
+    }
+
+    // ----------------- DETERMINISTIK ANALITIK VERI MOTORU -----------------
+    function getDeterministicData(city, level, school, type, date) {
+      const str = (city || "") + (level || "") + (school || "") + (type || "") + (date || "");
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const seed = Math.abs(hash || 100);
+      
+      const week1 = 15 + (seed % 25);
+      const week2 = week1 + 5 + ((seed >> 2) % 20);
+      const week3 = Math.max(10, week2 - 8 + ((seed >> 4) % 25));
+      const week4 = week3 + 8 + ((seed >> 6) % 30);
+      const week5 = week4 + 10 + ((seed >> 8) % 35);
+      
+      const m1 = 40 + (seed % 40);
+      const m2 = m1 + 15 + ((seed >> 1) % 30);
+      const m3 = Math.max(30, m2 - 20 + ((seed >> 3) % 35));
+      const m4 = m3 + 30 + ((seed >> 5) % 50);
+      const m5 = Math.max(50, m4 - 15 + ((seed >> 7) % 40));
+      const m6 = m5 + 40 + ((seed >> 9) % 80);
+      
+      const p1 = 30 + (seed % 25); 
+      const p2 = 20 + ((seed >> 3) % 20); 
+      const p3 = 100 - p1 - p2; 
+      
+      return {
+        weekly: [week1, week2, week3, week4, week5],
+        monthly: [m1, m2, m3, m4, m5, m6],
+        pie: [p1, p2, p3]
+      };
+    }
+
+    // ----------------- ILK YUKLEME VE NAVIGASYON -----------------
+    document.addEventListener("DOMContentLoaded", () => {
+      initNavigation();
+      initSpeechRecognition();
+      setupCitySelectFilters();
+      
+      // Güvenli KaTeX Matematiksel Otomatik Çizim Tetikleyicisi
+      try {
+        if (typeof renderMathInElement === "function") {
+          renderMathInElement(document.body);
+        }
+      } catch (err) {
+        console.warn("KaTeX render deferred: ", err);
+      }
+    });
+
+    function initNavigation() {
+      const navLinks = document.querySelectorAll(".nav-link");
+      navLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+          const targetPage = e.currentTarget.getAttribute("data-page");
+          
+          navLinks.forEach(nl => nl.classList.remove("active"));
+          e.currentTarget.classList.add("active");
+          
+          document.querySelectorAll(".page").forEach(p => p.classList.remove("active-page"));
+          document.getElementById(targetPage).classList.add("active-page");
+          
+          if(targetPage === 'dashboardPage') {
+            renderDashboard();
+          } else if(targetPage === 'reportFormPage') {
+            if(activeFormCards.length === 0) {
+              addNewBlankFormCard();
+            }
+          } else if(targetPage === 'managementPage') {
+            applyFiltersAndRender();
+          }
+        });
+      });
+    }
+
+    function setupCitySelectFilters() {
+      const filterCity = document.getElementById("filter-city");
+      const editCity = document.getElementById("edit-city");
+      const dashFilterCity = document.getElementById("dash-filter-city");
+      
+      let filterOptions = `<option value="Tümü">Tüm Şehirler</option>`;
+      let dashFilterOptions = `<option value="Tümü">Türkiye Geneli (Tümü)</option>`;
+      let editOptions = ``;
+      
+      TURKEY_CITIES.forEach(c => {
+        filterOptions += `<option value="${c}">${c}</option>`;
+        dashFilterOptions += `<option value="${c}">${c}</option>`;
+        editOptions += `<option value="${c}">${c}</option>`;
+      });
+
+      if(filterCity) filterCity.innerHTML = filterOptions;
+      if(dashFilterCity) dashFilterCity.innerHTML = dashFilterOptions;
+      if(editCity) editCity.innerHTML = editOptions;
+    }
+
+    // ----------------- OTURUM DOĞRULAMA (RBAC) -----------------
+    function selectQuickRole(role, cityId, displayName, email, btnId) {
+      currentUser.role = role;
+      currentUser.city_id = cityId;
+      currentUser.displayName = displayName;
+      
+      document.getElementById("login-email").value = email;
+      
+      document.querySelectorAll('.role-selector-btn').forEach(btn => {
+        btn.classList.remove('border-[#009639]', 'ring-2', 'ring-emerald-100');
+      });
+      
+      if(btnId) {
+        document.getElementById(btnId).classList.add('border-[#009639]', 'ring-2', 'ring-emerald-100');
+      }
+      
+      showToast(`${displayName} rolü seçildi!`, 'info');
+    }
+
+    function loginUser() {
+      const loginPageEl = document.getElementById("loginPage");
+      const appEl = document.getElementById("app");
+      if (loginPageEl) loginPageEl.classList.add("hidden");
+      if (appEl) appEl.classList.remove("hidden");
+      
+      // Header ve Yetki Kartı Güncelleme
+      const headerNameEl = document.getElementById("header-name");
+      const headerRoleEl = document.getElementById("header-role");
+      if (headerNameEl) headerNameEl.textContent = currentUser.displayName;
+      if (headerRoleEl) headerRoleEl.textContent = currentUser.role === 'President' ? 'Türkiye Genel Sorumlusu' : `${currentUser.city_id} Temsilcisi`;
+      
+      renderBadges();
+      onCityFilterChanged(); 
+      renderDashboard();
+      
+      showToast("Giriş başarılı.", "success");
+    }
+
+    function logoutUser() {
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("loginPage").classList.remove("hidden");
+      activeFormCards = [];
+      showToast("Oturum kapatıldı.", "info");
+    }
+
+    // Rozetleri dinamik çizdirme (Görsel 1 ile birebir uyumlu)
+    function renderBadges() {
+      const badgesContainer = document.getElementById("header-badges");
+      if (!badgesContainer) return;
+      badgesContainer.innerHTML = "";
+      
+      const badgeTemplates = [
+        { icon: "fa-microphone", color: "text-amber-600", bg: "bg-amber-100 border-amber-300", title: "Ses Hızı" },
+        { icon: "fa-arrow-trend-up", color: "text-slate-400", bg: "bg-slate-100 border-slate-300", title: "Zirveye Doğru" },
+        { icon: "fa-shield-halved", color: "text-slate-400", bg: "bg-slate-100 border-slate-300", title: "Veri Muhafızı" },
+        { icon: "fa-house-fire", color: "text-amber-600", bg: "bg-amber-100 border-amber-300", title: "Afet Öncüsü" }
+      ];
+
+      badgeTemplates.forEach(b => {
+        badgesContainer.innerHTML += `
+          <span class="px-2 py-0.5 rounded-full ${b.bg} ${b.color} border text-[9px] font-bold flex items-center gap-1 cursor-pointer" title="${b.title}">
+            <i class="fa-solid ${b.icon}"></i> ${b.title}
+          </span>
+        `;
+      });
+    }
+
+    // ----------------- GÖSTERGE PANELİ, HARİTA & HAFTALIK KATILIM ANALİTİĞİ -----------------
+    function onCityFilterChanged() {
+      const citySelect = document.getElementById("dash-filter-city");
+      const birimSelect = document.getElementById("dash-filter-level");
+      const schoolSelect = document.getElementById("dash-filter-school");
+      
+      if (!citySelect || !birimSelect || !schoolSelect) return;
+      
+      const city = citySelect.value;
+      const birim = birimSelect.value;
+      
+      if (city === "Tümü") {
+        schoolSelect.innerHTML = `<option value="Tümü">İlgili Birimdeki Tüm Okullar</option>`;
+      } else {
+        const schools = getSchoolsForCity(city, birim);
+        let options = `<option value="Tümü">Tüm Kurumlar</option>`;
+        schools.forEach(s => {
+          options += `<option value="${s}">${s}</option>`;
+        });
+        schoolSelect.innerHTML = options;
+      }
+      onDashboardFiltersChanged();
+    }
+
+    function onBirimFilterChanged() {
+      onCityFilterChanged(); 
+    }
+
+    function onDashboardFiltersChanged() {
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const isPresident = currentUser.role === 'President';
+      const allowedCity = currentUser.city_id;
+
+      const cityFilterEl = document.getElementById("dash-filter-city");
+      const levelFilterEl = document.getElementById("dash-filter-level");
+      const schoolFilterEl = document.getElementById("dash-filter-school");
+      const typeFilterEl = document.getElementById("dash-filter-type");
+      const startDateEl = document.getElementById("dash-start-date");
+
+      const selectedCityFilter = cityFilterEl ? cityFilterEl.value : "Tümü";
+      const selectedLevelFilter = levelFilterEl ? levelFilterEl.value : "Tümü";
+      const selectedSchoolFilter = schoolFilterEl ? schoolFilterEl.value : "Tümü";
+      const selectedTypeFilter = typeFilterEl ? typeFilterEl.value : "Tümü";
+      const selectedDateFilter = startDateEl ? startDateEl.value : "2026-07-18";
+
+      // Yetkiye ve süzgeçlere göre faaliyet havuzunu filtreleme
+      const filtered = dbActivities.filter(act => {
+        if (!isPresident && act.city.toLowerCase() !== allowedCity.toLowerCase()) {
+          return false;
+        }
+        if (selectedCityFilter !== "Tümü" && act.city !== selectedCityFilter) {
+          return false;
+        }
+        if (selectedLevelFilter !== "Tümü" && act.level !== selectedLevelFilter) {
+          return false;
+        }
+        if (selectedSchoolFilter !== "Tümü" && act.school !== selectedSchoolFilter) {
+          return false;
+        }
+        if (selectedTypeFilter !== "Tümü" && act.type !== selectedTypeFilter) {
+          return false;
+        }
+        return true;
+      });
+
+      // UI Gösterge Güncellemeleri - Safe Set Helpers (TypeError Engelleme)
+      const currentSelectionName = selectedCityFilter !== "Tümü" ? selectedCityFilter : (isPresident ? "Türkiye Geneli" : allowedCity);
+      
+      const setSafeText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+
+      setSafeText("dashCityName", currentSelectionName);
+      setSafeText("side-city-header", currentSelectionName);
+      setSafeText("dashTotalActivities", filtered.length);
+      
+      // Dinamik Katılımcı Hacmi
+      const totalParticipants = filtered.reduce((s, a) => s + parseInt(a.participants || 0), 0);
+      setSafeText("dashTotalParticipants", totalParticipants);
+
+      // Dinamik Karne Skoru
+      let dynamicScore = "16.67";
+      if (filtered.length > 0) {
+        dynamicScore = (totalParticipants / (filtered.length * 10)).toFixed(2);
+      } else {
+        dynamicScore = "4.20";
+      }
+      setSafeText("dashScore", `${dynamicScore} Puan`);
+      setSafeText("side-score-badge", dynamicScore);
+
+      // Sağ Panel Bilgi Güncelleme
+      const targetCount = selectedCityFilter !== "Tümü" ? 12 : 680;
+      setSafeText("side-target-count", targetCount);
+      setSafeText("side-active-count", filtered.length);
+
+      // Gelişmiş Üçlü Grafik Güncelleme Motoru (Deterministik AI Algoritması ile)
+      renderAnalyticsCharts(selectedCityFilter, selectedLevelFilter, selectedSchoolFilter, selectedTypeFilter, selectedDateFilter, filtered);
+    }
+
+    // Seçilen il, birim, okul, etkinlik ve tarihe göre ÜÇLÜ grafiği (Çizgi, Sütun, Pasta) çizdirir
+    function renderAnalyticsCharts(city, level, school, type, date, filtered) {
+      const trendSubtitle = document.getElementById("trend-subtitle");
+      const trendRatioPercentage = document.getElementById("trend-ratio-percentage");
+      
+      const currentCity = city === "Tümü" ? "Ankara" : city;
+      const currentLevel = level === "Tümü" ? "Üniversite" : level;
+      const currentSchool = school === "Tümü" ? "Hacettepe Üniversitesi" : school;
+      const currentType = type === "Tümü" ? "Workshop" : type;
+      const currentDate = date || "2026-07-18";
+
+      // Altyazıyı güncelle
+      if (trendSubtitle) {
+        trendSubtitle.textContent = `${currentCity} ili ${currentLevel} birimi - ${currentSchool} (${currentType} - ${currentDate})`;
+      }
+
+      // Kriterler doğrultusunda veritabanından süzülen gerçek verilerin katılımcı sayısını toplayalım
+      const totalActualParticipants = filtered.reduce((sum, item) => sum + parseInt(item.participants || 0), 0);
+
+      // Kriterler bazında deterministik tohum (seed) oluşturalım (Tüm grafikler için boş durumları beslemek üzere)
+      const dataSet = getDeterministicData(currentCity, currentLevel, currentSchool, currentType, currentDate);
+
+      let weekly = [...dataSet.weekly];
+      let monthly = [...dataSet.monthly];
+      let pie = [...dataSet.pie];
+
+      // EĞER SÜZÜLMÜŞ GERÇEK VERİ VARSA:
+      if (filtered.length > 0) {
+        // En son haftayı ve ayı bu gerçek veriyle %100 senkronize ediyoruz!
+        weekly[4] = totalActualParticipants;
+        monthly[5] = totalActualParticipants;
+
+        // Geriye dönük haftalık trendi gerçek katılımcı sayısına göre mantıksal olarak ölçekliyoruz
+        weekly[3] = Math.max(10, Math.round(totalActualParticipants * 0.85));
+        weekly[2] = Math.max(8, Math.round(totalActualParticipants * 0.65));
+        weekly[1] = Math.max(12, Math.round(totalActualParticipants * 0.75));
+        weekly[0] = Math.max(5, Math.round(totalActualParticipants * 0.5));
+
+        // Geriye dönük aylık barları da gerçek değere göre ölçeklendiriyoruz (Uçurumları önlemek adına)
+        monthly[4] = Math.max(20, Math.round(totalActualParticipants * 0.9));
+        monthly[3] = Math.max(15, Math.round(totalActualParticipants * 0.75));
+        monthly[2] = Math.max(18, Math.round(totalActualParticipants * 0.8));
+        monthly[1] = Math.max(10, Math.round(totalActualParticipants * 0.6));
+        monthly[0] = Math.max(8, Math.round(totalActualParticipants * 0.5));
+
+        // Pasta grafik oranlarını da bu gerçek verinin niteliğine göre dinamikleştiriyoruz
+        const seedValue = totalActualParticipants % 20;
+        pie[0] = 40 + seedValue; // Öğrenci oranı
+        pie[1] = 30 - Math.round(seedValue/2); // Gönüllü oranı
+        pie[2] = 100 - pie[0] - pie[1]; // Mensup oranı
+      }
+
+      // 1. ÇİZGİ GRAFİĞİ ÇİZİMİ (Line Chart - SVG) - Y-Ekseni Grid Çizgileri ve Sayısal Veriler Eklendi
+      const maxWeekly = Math.max(...weekly) || 100;
+      const lineCoords = weekly.map((val, idx) => {
+        const x = 50 + (idx / 4) * 510; // 50 ile 560 arasına dağıtıldı (Sol Y-Ekseni payı ayrıldı)
+        const y = 130 - (val / maxWeekly) * 100; // 30 ile 130 dikey aralığı
+        return { x, y, val };
+      });
+
+      const linePath = `M ${lineCoords[0].x},${lineCoords[0].y} ` + lineCoords.slice(1).map(c => `L ${c.x},${c.y}`).join(' ');
+      const areaPath = `${linePath} L ${lineCoords[lineCoords.length - 1].x},130 L ${lineCoords[0].x},130 Z`;
+
+      const trendSvg = document.getElementById("trend-svg-chart");
+      
+      if (trendSvg) {
+        // Dinamik Y-Ekseni Kademe Sayıları ve Kılavuz Çizgileri
+        const yGridLevels = [0, 0.25, 0.5, 0.75, 1];
+        let gridLinesHtml = yGridLevels.map(ratio => {
+          const val = Math.round(maxWeekly * ratio);
+          const y = 130 - (ratio * 100);
+          return `
+            <line x1="45" y1="${y}" x2="570" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="35" y="${y + 3}" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#64748b" text-anchor="end">${val}</text>
+          `;
+        }).join('');
+
+        trendSvg.innerHTML = `
+          <defs>
+            <linearGradient id="grad-trend" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#009639" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#009639" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          
+          <!-- Y-Ekseni Sayısal Değerleri ve Kılavuz Gridleri -->
+          ${gridLinesHtml}
+          
+          <!-- Alan Degrade Dolgusu -->
+          <path d="${areaPath}" fill="url(#grad-trend)"/>
+          <!-- Çizgi Yolu -->
+          <path d="${linePath}" fill="none" stroke="#009639" stroke-width="3" stroke-linecap="round"/>
+          
+          <!-- Etkileşim Noktaları ve Veriler -->
+          ${lineCoords.map((c, idx) => `
+            <g class="group cursor-pointer">
+              <circle cx="${c.x}" cy="${c.y}" r="6" fill="#f39c12" stroke="#ffffff" stroke-width="2"/>
+              <!-- Değer Etiketi (Her Zaman Görünür) -->
+              <text x="${c.x}" y="${c.y - 12}" font-family="sans-serif" font-size="9" font-weight="black" fill="#1e293b" text-anchor="middle">${c.val}</text>
+              <!-- X Ekseni Etiketi (Haftalar) -->
+              <text x="${c.x}" y="155" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#64748b" text-anchor="middle">${idx + 1}. Hafta</text>
+            </g>
+          `).join('')}
+        `;
+      }
+
+      // Çizgi grafiğindeki son hafta değişim oranı hesaplaması
+      if (trendRatioPercentage) {
+        const lastWeek = weekly[4];
+        const prevWeek = weekly[3];
+        const ratio = Math.round(((lastWeek - prevWeek) / (prevWeek || 1)) * 100);
+        if (ratio >= 0) {
+          trendRatioPercentage.textContent = `+%${ratio} Gelişim`;
+          trendRatioPercentage.className = "text-[10px] text-[#009639] bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200 font-black";
+        } else {
+          trendRatioPercentage.textContent = `-%${Math.abs(ratio)} Gerileme`;
+          trendRatioPercentage.className = "text-[10px] text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 font-black";
+        }
+      }
+
+      // 2. SÜTUN GRAFİĞİ ÇİZİMİ (Bar Chart - SVG) - Y-Ekseni Grid Çizgileri ve Sayısal Veriler Eklendi
+      const maxMonthly = Math.max(...monthly) || 150;
+      const barSvg = document.getElementById("bar-svg-chart");
+      
+      if (barSvg) {
+        const leadingMonths = get6MonthsLeadingTo(currentDate);
+        const yBarGridLevels = [0, 0.25, 0.5, 0.75, 1];
+        let barGridLinesHtml = yBarGridLevels.map(ratio => {
+          const val = Math.round(maxMonthly * ratio);
+          const y = 130 - (ratio * 100);
+          return `
+            <line x1="45" y1="${y}" x2="570" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="35" y="${y + 3}" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#64748b" text-anchor="end">${val}</text>
+          `;
+        }).join('');
+
+        let barHtml = barGridLinesHtml;
+
+        monthly.forEach((val, idx) => {
+          const x = idx * 85 + 65; // offset 65 ile 490 arasına dengelendi
+          const barHeight = (val / maxMonthly) * 100;
+          const y = 130 - barHeight;
+          barHtml += `
+            <g class="group cursor-pointer">
+              <!-- Köşeleri Yuvarlatılmış Sütun Dikdörtgeni -->
+              <rect x="${x}" y="${y}" width="28" height="${barHeight}" rx="4" fill="#009639" class="transition-all duration-300 hover:fill-[#c59b27]" />
+              <!-- Sütun Üzeri Değer Etiketi (Her Zaman Görünür) -->
+              <text x="${x + 14}" y="${y - 8}" font-family="sans-serif" font-size="9" font-weight="black" fill="#1e293b" text-anchor="middle">${val}</text>
+              <!-- X Ekseni Etiketi (Aylar) -->
+              <text x="${x + 14}" y="155" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#64748b" text-anchor="middle">${leadingMonths[idx].label}</text>
+            </g>
+          `;
+        });
+        barSvg.innerHTML = barHtml;
+      }
+
+      // 3. PASTA GRAFİĞİ GÜNCELLEMESİ (Pie Chart - CSS Conic Gradient)
+      const pieRender = document.getElementById("pie-chart-render");
+      if (pieRender) {
+        const p1 = pie[0]; 
+        const p2 = pie[1]; 
+        const p3 = pie[2]; 
+
+        pieRender.style.background = `conic-gradient(#009639 0% ${p1}%, #f39c12 ${p1}% ${p1 + p2}%, #3b82f6 ${p1 + p2}% 100%)`;
+
+        const setSafeText = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        };
+
+        setSafeText("pie-lbl-students", `%${p1}`);
+        setSafeText("pie-lbl-volunteers", `%${p2}`);
+        setSafeText("pie-lbl-members", `%${p3}`);
+      }
+    }
+
+    // 81 İl Düğüm Haritası Oluşturucu ( Constellation/Bubble Yapısında)
+    function drawTurkeyCitiesMap(activeCityName) {
+      const group = document.getElementById("map-cities-nodes-group");
+      if (!group) return;
+      group.innerHTML = "";
+
+      // Şehirlerin faaliyet sayılarını hesapla (Boyutlandırma için)
+      const cityActivityCounts = {};
+      dbActivities.forEach(act => {
+        cityActivityCounts[act.city] = (cityActivityCounts[act.city] || 0) + 1;
+      });
+
+      CITIES_COORDS.forEach(city => {
+        const count = cityActivityCounts[city.name] || 0;
+        const radius = count > 0 ? 5 + Math.min(count * 2.5, 9) : 4.5;
+        const isSelected = city.name === activeCityName;
+        
+        let fillColor = "#94a3b8"; // Varsayılan pasif slate rengi
+        let strokeColor = "transparent";
+        let strokeWidth = 0;
+        
+        if (count > 0) {
+          fillColor = "#009639"; // Aktif IHH Yeşili
+        }
+        if (isSelected) {
+          fillColor = "#c59b27"; // Seçili IHH Altın Sarısı
+          strokeColor = "#ffffff";
+          strokeWidth = 2;
+        }
+
+        // SVG Grup elemanı
+        const cityG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        cityG.setAttribute("class", "cursor-pointer group");
+        cityG.addEventListener("click", () => {
+          selectCityFromMap(city.name);
+        });
+
+        // Çember Düğüm (Bubble)
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", city.x);
+        circle.setAttribute("cy", city.y);
+        circle.setAttribute("r", radius);
+        circle.setAttribute("fill", fillColor);
+        circle.setAttribute("class", "map-city-node");
+        if (strokeWidth > 0) {
+          circle.setAttribute("stroke", strokeColor);
+          circle.setAttribute("stroke-width", strokeWidth);
+        }
+
+        // Önemli büyük illeri haritada her zaman etiketle, diğerleri hover durumunda görünecek
+        const alwaysShowLabel = ["İstanbul", "Ankara", "Siirt", "İzmir", "Diyarbakır", "Samsun", "Van", "Bursa"].includes(city.name);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", city.x);
+        text.setAttribute("y", city.y - (radius + 4));
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("font-family", "sans-serif");
+        text.setAttribute("font-size", "8");
+        text.setAttribute("font-weight", alwaysShowLabel || isSelected ? "800" : "500");
+        text.setAttribute("class", alwaysShowLabel || isSelected ? "" : "opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none");
+        text.textContent = city.name;
+
+        cityG.appendChild(circle);
+        cityG.appendChild(text);
+        group.appendChild(cityG);
+      });
+    }
+
+    // Haritadan il tıklanınca tetiklenen filtreleme fonksiyonu
+    function selectCityFromMap(cityName) {
+      if(currentUser.role === 'Representative' && cityName.toLowerCase() !== currentUser.city_id.toLowerCase()) {
+        showCustomModal("Erişim Sınırlandırıldı", "İl Temsilcisi yetkisindeyken sadece kendi şehrinizin verilerini inceleyebilirsiniz.", null);
+        return;
+      }
+      const filterCityEl = document.getElementById("dash-filter-city");
+      if (filterCityEl) {
+        filterCityEl.value = cityName;
+        onCityFilterChanged();
+        showToast(`${cityName} ili seçildi ve tüm göstergeler güncellendi!`, "success");
+      }
+    }
+
+    // ----------------- TEŞKİLAT DURUMU GÖSTERGE BARLARI (Uyum Koruması) -----------------
+    function renderDistributionBars(filteredList) {
+      const counts = { "Üniversite": 0, "Lise": 0, "Ortaokul": 0, "Çocuk Birimi": 0 };
+      filteredList.forEach(act => {
+        if(counts[act.level] !== undefined) {
+          counts[act.level]++;
+        }
+      });
+    }
+
+    // ----------------- AI SESLİ NLP & RAPOR GİRİŞ SİSTEMİ -----------------
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.log = false;
+        recognition.lang = 'tr-TR';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isRecording = true;
+          document.getElementById("mic-status").textContent = "Dinleniyor...";
+          document.getElementById("mic-status").className = "inline-block mt-2 text-[10px] font-black tracking-widest text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full uppercase";
+          document.getElementById("mic-icon").className = "fa-solid fa-microphone-slash";
+          document.getElementById("mic-pulse").classList.remove("hidden");
+          showToast("Ses kaydı başladı, konuşun.", "info");
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[event.results.length - 1][0].transcript;
+          const txt = document.getElementById("nlp-text-input");
+          txt.value = txt.value ? txt.value + " " + transcript : transcript;
+        };
+
+        recognition.onerror = () => stopRecording();
+        recognition.onend = () => stopRecording();
+      } else {
+        document.getElementById("mic-status").textContent = "Desteklenmiyor";
+        document.getElementById("mic-btn").disabled = true;
+      }
+    }
+
+    function toggleSpeech() {
+      if(!recognition) return;
+      if(isRecording) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      document.getElementById("mic-status").textContent = "Hazır";
+      document.getElementById("mic-status").className = "inline-block mt-2 text-[10px] font-black tracking-widest text-gray-400 bg-white border px-2.5 py-0.5 rounded-full uppercase";
+      document.getElementById("mic-icon").className = "fa-solid fa-microphone";
+      document.getElementById("mic-pulse").classList.add("hidden");
+    }
+
+    function fillSampleNlpText() {
+      const samples = [
+        "Ankara Çankaya'da Üniversite düzeyinde Hacettepe Üniversitesi'nde Teşkilat Salonu konumunda Workshop gerçekleştirdik. 45 katılımcı vardı ve 8 gönüllü görev aldı.",
+        "Siirt ilinde lise düzeyinde Merkez teşkilat ofisinde Genç Ofis konumunda haftalık eğitim programı yaptık. Katılımcı sayısı 14 oldu.",
+        "Komisyon toplantısı organize ettik. Ankara Çankaya'da üniversite teşkilatı ile Hacettepe Üniversitesi'nde mescit konumunda toplandık. 10 kişi katıldı."
+      ];
+      document.getElementById("nlp-text-input").value = samples[Math.floor(Math.random() * samples.length)];
+      showToast("Örnek rapor metni yüklendi.", "info");
+    }
+
+    async function analyzeNlpWithGemini() {
+      const text = document.getElementById("nlp-text-input").value.trim();
+      if(!text) {
+        showToast("Lütfen analiz edilecek bir metin yazın veya konuşun.", "error");
+        return;
+      }
+
+      showToast("Yapay zeka analiz ediyor...", "info");
+
+      const systemPrompt = `
+        Sen Genç İHH Teşkilat yönetiminde çalışan bir NLP asistanısın. 
+        Kullanıcının girdiği serbest metin raporlarından şu alanları bulup JSON formatında döndürmelisin:
+        - city: Şehir adı (örn: "Ankara", "Siirt").
+        - district: İlçe adı (belirtilmemişse "Merkez" yaz).
+        - level: Eğitim Birim Düzeyi. Sadece şunlardan biri olmalıdır: "Üniversite", "Lise", "Ortaokul", "Çocuk Birimi".
+        - school: Okul/Kurum veya teşkilat adı.
+        - location: Bulunulan spesifik konum (örn: "Genç Ofis", "Okul Kütüphanesi", "Mescit", "Teşkilat Odası", "Konferans Salonu" vb. belirtilmemişse "Belirtilmedi" yaz).
+        - type: Faaliyet Türü. Sadece şunlardan biri: "Workshop", "Komisyon Toplantısı", "Haftalık Ders", "Eğitim", "Sosyal Faaliyet", "Ziyaret Programı", "Afet Bilinci Semineri", "İlk Yardım Eğitimi".
+        - date: Faaliyet tarihi (yoksa bugünün tarihi "2026-07-18" formatında üret).
+        - participants: Katılımcı sayısı (tamsayı, yoksa 10 varsay).
+        - volunteers: Gönüllü sayısı (tamsayı, yoksa 3 varsay).
+        - notes: Kısa açıklama özeti.
+
+        Sadece geçerli bir JSON objesi döndür, kod bloğu veya ek açıklama yazma.
+      `;
+
+      try {
+        const responseText = await fetchGemini({
+          contents: [{ parts: [{ text: `Aşağıdaki metni analiz et:\n"${text}"` }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        });
+
+        const parsed = JSON.parse(responseText);
+        if(parsed) {
+          appendParsedCard(parsed);
+          showToast("Analiz başarıyla tamamlandı ve forma eklendi!", "success");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Yapay zeka sunucusu yanıt vermedi. Manuel ekleme yapabilirsiniz.", "error");
+      }
+    }
+
+    async function fetchGemini(payload, retries = 5, delay = 1000) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+      for (let i = 0; i < retries; i++) {
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            const data = await res.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text;
+          }
+        } catch (e) {
+          if (i === retries - 1) throw e;
+        }
+        await new Promise(r => setTimeout(r, delay * Math.pow(2, i)));
+      }
+    }
+
+    // ----------------- FOTOĞRAF ANALİZİ VE COMPUTER VISION SİMÜLATÖRÜ -----------------
+    function triggerImageUpload() {
+      document.getElementById("cv-image-upload").click();
+    }
+
+    // Fotoğraf analizi bittiğinde ilk aktif karta katılımcı sayısını aktarma simülasyonu
+    function simulatePhotoAnalysis() {
+      const laser = document.getElementById("scanning-laser");
+      const placeholder = document.getElementById("cv-upload-placeholder");
+      const result = document.getElementById("cv-analysis-result");
+
+      placeholder.classList.add("hidden");
+      result.classList.add("hidden");
+      laser.classList.remove("hidden");
+
+      showToast("Fotoğraftaki katılımcı yüzleri yapay zeka ile analiz ediliyor...", "info");
+
+      setTimeout(() => {
+        laser.classList.add("hidden");
+        result.classList.remove("hidden");
+        
+        const randomFaces = Math.floor(Math.random() * 14) + 12;
+        document.getElementById("detected-faces-count").textContent = randomFaces;
+
+        if (activeFormCards.length > 0) {
+          activeFormCards[0].participants = randomFaces;
+          renderFormCards();
+          showToast("Analiz tamamlandı! Katılımcı sayısı otomatik forma aktarıldı.", "success");
+        } else {
+          showToast(`Analiz tamamlandı! Fotoğrafta ${randomFaces} katılımcı bulundu.`, "success");
+        }
+      }, 2500);
+    }
+
+    // ----------------- DİNAMİK FORM KARTLARININ ÇİZİMİ -----------------
+    function addNewBlankFormCard() {
+      const defaultData = {
+        id: "f_" + Date.now() + "_" + Math.floor(Math.random()*100),
+        city: currentUser.city_id || "İstanbul", 
+        district: "",
+        level: "Üniversite",
+        school: "",
+        location: "",
+        type: "Haftalık Ders",
+        date: "2026-07-18",
+        participants: 0,
+        volunteers: 3,
+        notes: ""
+      };
+      activeFormCards.push(defaultData);
+      renderFormCards();
+    }
+
+    function appendParsedCard(parsed) {
+      const defaultData = {
+        id: "f_" + Date.now(),
+        city: currentUser.city_id || parsed.city || "İstanbul", 
+        district: parsed.district || "",
+        level: parsed.level || "Üniversite",
+        school: parsed.school || "",
+        location: parsed.location || "Belirtilmedi",
+        type: parsed.type || "Haftalık Ders",
+        date: parsed.date || "2026-07-18",
+        participants: parsed.participants || 10,
+        volunteers: parsed.volunteers || 3,
+        notes: parsed.notes || ""
+      };
+      activeFormCards.push(defaultData);
+      renderFormCards();
+    }
+
+    function removeFormCard(id) {
+      if(activeFormCards.length === 1) {
+        showToast("En az bir faaliyet kartı bulunmalıdır.", "info");
+        return;
+      }
+      activeFormCards = activeFormCards.filter(c => c.id !== id);
+      renderFormCards();
+    }
+
+    // ----------------- FORM VE ALAN DEĞER DEĞİŞİKLİĞİ TAKİBİ -----------------
+    function updateCardField(id, field, value) {
+      const card = activeFormCards.find(c => c.id === id);
+      if(card) {
+        card[field] = value;
+      }
+      calculateCompletion();
+    }
+
+    function renderFormCards() {
+      const container = document.getElementById("report-form-container");
+      container.innerHTML = "";
+
+      activeFormCards.forEach((card, index) => {
+        const isCityDisabled = currentUser.role === 'Representative';
+        const displayCity = isCityDisabled ? currentUser.city_id : card.city;
+
+        const availableSchools = getSchoolsForCity(displayCity, card.level);
+
+        const div = document.createElement("div");
+        div.className = "bg-white p-5 rounded-3xl border border-gray-155 shadow-sm space-y-4";
+        div.innerHTML = `
+          <div class="flex justify-between items-center border-b pb-3 border-gray-150">
+            <span class="text-xs font-black text-gray-800 bg-gray-100 px-3 py-1 rounded-full">${index + 1}. Rapor Kartı</span>
+            <button onclick="removeFormCard('${card.id}')" class="text-red-500 hover:text-red-755 text-xs font-bold transition flex items-center gap-1">
+              <i class="fa-solid fa-trash-can"></i> Sil
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">İL</label>
+              <select onchange="updateCardField('${card.id}', 'city', this.value); renderFormCards();" ${isCityDisabled ? 'disabled' : ''} class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+                ${TURKEY_CITIES.map(c => `<option value="${c}" ${c === displayCity ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">İLÇE</label>
+              <input type="text" value="${card.district}" oninput="updateCardField('${card.id}', 'district', this.value)" placeholder="Örn: Çankaya" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">KURUM TÜRÜ</label>
+              <select onchange="updateCardField('${card.id}', 'level', this.value); renderFormCards();" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+                <option value="Üniversite" ${card.level === "Üniversite" ? "selected" : ""}>Üniversite</option>
+                <option value="Lise" ${card.level === "Lise" ? "selected" : ""}>Lise</option>
+                <option value="Ortaokul" ${card.level === "Ortaokul" ? "selected" : ""}>Ortaokul</option>
+                <option value="Çocuk Birimi" ${card.level === "Çocuk Birimi" ? "selected" : ""}>Çocuk Birimi</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">KURUM ADI *</label>
+              <select onchange="updateCardField('${card.id}', 'school', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+                <option value="">Seçiniz...</option>
+                ${availableSchools.map(s => `<option value="${s}" ${s === card.school ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">FAALİYET TÜRÜ *</label>
+              <select onchange="updateCardField('${card.id}', 'type', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+                <option value="Workshop" ${card.type === "Workshop" ? "selected" : ""}>Workshop</option>
+                <option value="Komisyon Toplantısı" ${card.type === "Komisyon Toplantısı" ? "selected" : ""}>Komisyon Toplantısı</option>
+                <option value="Haftalık Ders" ${card.type === "Haftalık Ders" ? "selected" : ""}>Haftalık Ders</option>
+                <option value="Eğitim" ${card.type === "Eğitim" ? "selected" : ""}>Eğitim</option>
+                <option value="Sosyal Faaliyet" ${card.type === "Sosyal Faaliyet" ? "selected" : ""}>Sosyal Faaliyet</option>
+                <option value="Ziyaret Programı" ${card.type === "Ziyaret Programı" ? "selected" : ""}>Ziyaret Programı</option>
+                <option value="Afet Bilinci Semineri" ${card.type === "Afet Bilinci Semineri" ? "selected" : ""}>Afet Bilinci Semineri</option>
+                <option value="İlk Yardım Eğitimi" ${card.type === "İlk Yardım Eğitimi" ? "selected" : ""}>İlk Yardım Eğitimi</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">FAALİYET TARİHİ *</label>
+              <input type="date" value="${card.date}" onchange="updateCardField('${card.id}', 'date', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-medium focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">KATILIMCI SAYISI</label>
+              <input type="number" value="${card.participants}" oninput="updateCardField('${card.id}', 'participants', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-medium focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">GÖNÜLLÜ SAYISI</label>
+              <input type="number" value="${card.volunteers}" oninput="updateCardField('${card.id}', 'volunteers', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-medium focus:outline-none">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">KONUM</label>
+              <input type="text" value="${card.location || ''}" oninput="updateCardField('${card.id}', 'location', this.value)" placeholder="Örn: Genç Ofis, Mescit vb." class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-semibold focus:outline-none">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">AÇIKLAMA / DETAYLAR</label>
+              <textarea rows="2" oninput="updateCardField('${card.id}', 'notes', this.value)" class="w-full p-3 text-xs rounded-xl border border-gray-200 bg-gray-50 font-medium focus:outline-none">${card.notes}</textarea>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      calculateCompletion();
+    }
+
+    function calculateCompletion() {
+      let filled = 0;
+      let total = activeFormCards.length * 4;
+
+      activeFormCards.forEach(c => {
+        if(c.city) filled++;
+        if(c.school) filled++;
+        if(c.type) filled++;
+        if(c.participants > 0) filled++;
+      });
+
+      const ratio = Math.round((filled/total)*100) || 0;
+      document.getElementById("completion-ratio-text").textContent = `${ratio}%`;
+      document.getElementById("completion-ratio-bar").style.width = `${ratio}%`;
+    }
+
+    function saveDraft() {
+      showToast("Rapor taslak olarak tarayıcıya kaydedildi.", "info");
+    }
+
+    function submitFinalReport() {
+      const isRep = currentUser.role === 'Representative';
+      const repCity = currentUser.city_id;
+
+      let valid = true;
+      const parsed = activeFormCards.map(c => {
+        if(!c.school || c.participants <= 0) {
+          valid = false;
+        }
+        return {
+          id: "act_" + Date.now() + "_" + Math.floor(Math.random()*100),
+          dateText: "13-19 Temmuz 2026",
+          city: isRep ? repCity : c.city, 
+          district: c.district || "Merkez",
+          level: c.level,
+          school: c.school,
+          location: c.location || "Belirtilmedi",
+          type: c.type,
+          date: c.date,
+          participants: parseInt(c.participants) || 0,
+          volunteers: parseInt(c.volunteers) || 0,
+          notes: c.notes || ""
+        };
+      });
+
+      if(!valid) {
+        showToast("Lütfen Kurum Adı ve Katılımcı Sayısı alanlarını doldurun.", "error");
+        return;
+      }
+
+      dbActivities.unshift(...parsed);
+      showToast("Haftalık Rapor başarıyla gönderildi ve grafiklere yansıtıldı!", "success");
+      activeFormCards = [];
+      addNewBlankFormCard();
+
+      renderDashboard();
+
+      document.querySelector('[data-page="managementPage"]').click();
+    }
+
+    // ----------------- CRUD VERİ YÖNETİMİ & EXCEL DIŞA AKTARIM -----------------
+    let editTargetId = null;
+
+    function applyFiltersAndRender() {
+      const tableBody = document.getElementById("crud-table-body");
+      tableBody.innerHTML = "";
+
+      const isPresident = currentUser.role === 'President';
+      const allowedCity = currentUser.city_id;
+
+      const filterCityVal = document.getElementById("filter-city").value || 'Tümü';
+      const filterLevelVal = document.getElementById("filter-level").value;
+      const searchSchoolVal = document.getElementById("search-school").value.toLowerCase();
+
+      const filtered = dbActivities.filter(act => {
+        if(!isPresident && act.city.toLowerCase() !== allowedCity.toLowerCase()) {
+          return false;
+        }
+
+        if(isPresident && filterCityVal !== 'Tümü' && act.city !== filterCityVal) return false;
+        if(filterLevelVal !== 'Tümü' && act.level !== filterLevelVal) return false;
+        if(searchSchoolVal && !act.school.toLowerCase().includes(searchSchoolVal)) return false;
+
+        return true;
+      });
+
+      document.getElementById("record-count-badge").textContent = `${filtered.length} Kayıt Listeleniyor`;
+
+      if(filtered.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-gray-400">Aranılan kriterlere uygun faaliyet bulunamadı.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(act => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-gray-50/50 transition border-b border-gray-100";
+        tr.innerHTML = `
+          <td class="py-3.5 font-bold text-slate-800">
+            <div>${act.dateText || '13-19 Temmuz 2026'}</div>
+            <div class="text-[9px] text-gray-400 font-medium">${act.date || '2026-07-15'}</div>
+          </td>
+          <td class="py-3.5 font-black text-slate-800">${act.city.toUpperCase()}</td>
+          <td class="py-3.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold">${act.level}</span></td>
+          <td class="py-3.5 font-bold text-gray-700">${act.school}</td>
+          <td class="py-3.5"><span class="bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-100 text-[10px] font-semibold">${act.type}</span></td>
+          <td class="py-3.5 font-bold text-slate-900">${act.participants} Kişi</td>
+          <td class="py-3.5 text-right space-x-2">
+            <button onclick="openEditModal('${act.id}')" class="text-blue-500 hover:text-blue-700 transition font-bold text-[11px]"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
+            <button onclick="deleteActivity('${act.id}')" class="text-red-500 hover:text-red-700 transition font-bold text-[11px]"><i class="fa-solid fa-trash-can"></i> Sil</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function openAddRecordModal() {
+      document.querySelector('[data-page="reportFormPage"]').click();
+      showToast("Yeni rapor ekleme formuna yönlendirildiniz.", "info");
+    }
+
+    function openEditModal(id) {
+      editTargetId = id;
+      const act = dbActivities.find(a => a.id === id);
+      if(!act) return;
+
+      const isRep = currentUser.role === 'Representative';
+      const citySelect = document.getElementById("edit-city");
+      citySelect.value = act.city;
+      citySelect.disabled = isRep;
+
+      document.getElementById("edit-level").value = act.level;
+      document.getElementById("edit-school").value = act.school;
+      document.getElementById("edit-type").value = act.type;
+      document.getElementById("edit-participants").value = act.participants;
+      document.getElementById("edit-date").value = act.date;
+      document.getElementById("edit-volunteers").value = act.volunteers;
+      document.getElementById("edit-location").value = act.location || "";
+      document.getElementById("edit-notes").value = act.notes;
+
+      document.getElementById("edit-modal").classList.remove("hidden");
+    }
+
+    function closeEditModal() {
+      document.getElementById("edit-modal").classList.add("hidden");
+    }
+
+    function saveEditFromModal() {
+      const act = dbActivities.find(a => a.id === editTargetId);
+      if(!act) return;
+
+      if(currentUser.role === 'Representative') {
+        act.city = currentUser.city_id; 
+      } else {
+        act.city = document.getElementById("edit-city").value;
+      }
+
+      act.level = document.getElementById("edit-level").value;
+      act.school = document.getElementById("edit-school").value;
+      act.type = document.getElementById("edit-type").value;
+      act.participants = parseInt(document.getElementById("edit-participants").value) || 0;
+      act.date = document.getElementById("edit-date").value;
+      act.volunteers = parseInt(document.getElementById("edit-volunteers").value) || 0;
+      act.location = document.getElementById("edit-location").value;
+      act.notes = document.getElementById("edit-notes").value;
+
+      closeEditModal();
+      applyFiltersAndRender();
+      renderDashboard(); 
+      showToast("Faaliyet başarıyla güncellendi.", "success");
+    }
+
+    function deleteActivity(id) {
+      const actOriginal = dbActivities.find(a => a.id === id);
+      if(!actOriginal) return;
+
+      if(currentUser.role === 'Representative' && actOriginal.city.toLowerCase() !== currentUser.city_id.toLowerCase()) {
+        showCustomModal("Yetkisiz İşlem", "Sadece kendi şehrinize ait kayıtları silebilirsiniz.", null);
+        return;
+      }
+
+      showCustomModal(
+        "Kayıt Silinecek", 
+        `"${actOriginal.school}" okuluna ait bu faaliyet raporunu silmek istediğinizden emin misiniz?`, 
+        () => {
+          dbActivities = dbActivities.filter(a => a.id !== id);
+          applyFiltersAndRender();
+          renderDashboard(); 
+          showToast("Kayıt başarıyla silindi.", "info");
+        }
+      );
+    }
+
+    function exportToExcel() {
+      triggerDownload("excel");
+    }
+
+    function exportToCsv() {
+      triggerDownload("csv");
+    }
+
+    function generatePdfReport() {
+      showToast("PDF Raporlama başlatıldı. Rapor yazıcı çıktısı veya indirme olarak hazırlanıyor...", "success");
+      setTimeout(() => {
+        window.print();
+      }, 1000);
+    }
+
+    function triggerDownload(format) {
+      const isPresident = currentUser.role === 'President';
+      const allowedCity = currentUser.city_id;
+
+      const targetList = dbActivities.filter(act => {
+        if (!isPresident) return act.city.toLowerCase() === allowedCity.toLowerCase();
+        return true;
+      });
+
+      if(targetList.length === 0) {
+        showToast("Dışa aktarılacak veri bulunamadı.", "error");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "Şehir;Eğitim Düzeyi;Kurum Adı;Konum;Faaliyet Türü;Tarih;Katılımcı Sayısı;Gönüllü Sayısı\n";
+
+      targetList.forEach(act => {
+        csvContent += `"${act.city}";"${act.level}";"${act.school}";"${act.location || ''}";"${act.type}";"${act.date}";${act.participants};${act.volunteers}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Genc_IHH_Teşkilat_Raporu_${Date.now()}.${format === "excel" ? "xls" : "csv"}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`${format.toUpperCase()} belgesi başarıyla oluşturuldu ve indirildi!`, "success");
+    }
+
+    // ----------------- YARDIMCI MODAL VE TOAST SİSTEMİ -----------------
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = "p-4 rounded-2xl shadow-xl text-white text-xs font-bold flex justify-between items-center transform transition-all duration-300 translate-y-2 opacity-0";
+      
+      if(type === 'success') toast.style.backgroundColor = '#009639';
+      else if(type === 'error') toast.style.backgroundColor = '#e74c3c';
+      else toast.style.backgroundColor = '#1f2937';
+
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="text-white ml-2 text-base">&times;</button>
+      `;
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 50);
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function showCustomModal(title, message, confirmCallback) {
+      const modal = document.getElementById("custom-modal");
+      document.getElementById("modal-title").textContent = title;
+      document.getElementById("modal-message").textContent = message;
+
+      const confirmBtn = document.getElementById("modal-confirm-btn");
+      const cancelBtn = document.getElementById("modal-cancel-btn");
+
+      modal.classList.remove("hidden");
+
+      const cleanup = () => {
+        modal.classList.add("hidden");
+      };
+
+      cancelBtn.onclick = cleanup;
+      confirmBtn.onclick = () => {
+        cleanup();
+        if(confirmCallback) confirmCallback();
+      };
+    }
+  </script>
+</body>
+</html>
