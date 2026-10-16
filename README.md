@@ -67,3 +67,7 @@ Dosyalar: index.html (arayüz), app.js (durum/işlevler), styles/ (yerel CSS), t
 [Teknik Tasarım ve Kararlar](docs/TECHNICAL_DESIGN.md)
 
 Geliştirici: **Büşra Buse Uçar**
+
+## İşletim
+
+[İşletim ve sürüm doğrulama](docs/OPERATIONS.md) — kurulum, veri saklama, yayın, geri dönüş ve doğrulama kapsamı.
