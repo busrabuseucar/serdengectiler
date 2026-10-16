@@ -1,5 +1,11 @@
 # Serdengeçtiler — Saha Raporlama Demosu
 
+## Canlı demonun kapsamı
+
+[Demoyu aç](https://serdenge-tiler.vercel.app)
+
+Örnek faaliyetlerle kayıt ekleme/düzenleme, filtreleme, grafikler ve CSV işlemleri denenebilir. Veriler yalnızca bu tarayıcıda tutulur. Rol seçimi ekran demosudur; gerçek giriş, sunucu yetkilendirmesi, ortak kurum veritabanı ve yapay zekâ servisleri içermez.
+
 Genç İHH saha faaliyeti raporlama akışını gösteren HTML, CSS ve Vanilla JavaScript prototipi. Rol görünümü, manuel faaliyet girişi, tarayıcıda taslak/kayıt saklama, düzenleme/silme ve kayıt verisine dayalı grafikler içerir.
 
 **Bu sürüm yerel demodur.** Gerçek kimlik doğrulama, sunucu tarafı yetkilendirme, ortak veritabanı veya kurumlar arası senkronizasyon içermez. Gerçek kişisel veri girilmemelidir. İlk açılıştaki beş faaliyet örnek veridir.
