@@ -1,0 +1,38 @@
+import {test,expect} from "playwright/test";
+test("draft reload, report save, edit and delete",async({page})=>{
+ const errors=[];page.on("pageerror",e=>errors.push(e.message));
+ await page.goto("/");
+ await page.getByRole("button",{name:"Demoyu Aç"}).click();
+ await page.locator('[data-page="reportFormPage"]').click();
+ const card=page.locator("#report-form-container > div").first();
+ await card.locator("select").nth(2).selectOption({index:1});
+ await card.locator('input[type="number"]').first().fill("25");
+ await page.locator('[onclick="saveDraft()"]').click();
+ await expect(page.locator("#toast-container")).toContainText("Taslak bu tarayıcıya kaydedildi");
+ await page.reload();await page.getByRole("button",{name:"Demoyu Aç"}).click();
+ await page.locator('[data-page="reportFormPage"]').click();
+ await expect(card.locator('input[type="number"]').first()).toHaveValue("25");
+ await page.locator('[onclick="submitFinalReport()"]').click();
+ await expect(page.locator("#crud-table-body tr")).toHaveCount(6);
+ await page.reload();await page.getByRole("button",{name:"Demoyu Aç"}).click();
+ await page.locator('[data-page="managementPage"]').click();
+ await expect(page.locator("#crud-table-body tr")).toHaveCount(6);
+ await page.locator("#crud-table-body tr").first().getByRole("button",{name:"Düzenle"}).click();
+ await page.locator("#edit-school").fill('<img src=x onerror=alert(1)>');
+ await page.locator('[onclick="saveEditFromModal()"]').click();
+ await expect(page.locator("#crud-table-body img")).toHaveCount(0);
+ await expect(page.locator("#crud-table-body")).toContainText("<img src=x");
+ await page.locator("#crud-table-body tr").first().getByRole("button",{name:"Sil",exact:true}).click();
+ await page.locator("#modal-confirm-btn").click();
+ await expect(page.locator("#crud-table-body tr")).toHaveCount(5);
+ expect(errors).toEqual([]);
+});
+test("representative sees only its city and csv downloads",async({page})=>{
+ await page.goto("/");await page.locator("#role-rep").click();
+ await page.getByRole("button",{name:"Demoyu Aç"}).click();
+ await page.locator('[data-page="managementPage"]').click();
+ await expect(page.locator("#crud-table-body tr")).toHaveCount(1);
+ await expect(page.locator("#crud-table-body")).toContainText("SİİRT");
+ const download=page.waitForEvent("download");await page.locator('[onclick="exportToCsv()"]').click();
+ expect((await download).suggestedFilename()).toBe("Serdengectiler_Rapor.csv");
+});
