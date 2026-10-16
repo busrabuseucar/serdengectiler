@@ -117,3 +117,7 @@ test("CSV uses filtered rows, escapes quotes and neutralizes formulas",async t=>
  assert.ok(output.includes('"\'=SUM(1;2)""test"'));
  assert.ok(!output.includes("İstanbul Üniversitesi"));
 });
+test("editing seed activity retains its existing type",async t=>{
+ const w=await boot(t);w.loginUser();w.openEditModal("act_102");w.saveEditFromModal();
+ assert.equal(json(w,"dbActivities").find(a=>a.id==="act_102").type,"Haftalık Eğitim");
+});

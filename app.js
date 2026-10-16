@@ -35,7 +35,7 @@
     function validRecord(a, draft = false) {
       return a && /^[a-zA-Z0-9_-]+$/.test(a.id) && TURKEY_CITIES.includes(a.city) && ["Üniversite","Lise","Ortaokul","Çocuk Birimi"].includes(a.level) &&
         ["city","level","school","type","date","district","location","notes"].every(k => typeof a[k] === "string" && a[k].length <= 2000) &&
-        (draft || (a.school.trim() && /^\d{4}-\d{2}-\d{2}$/.test(a.date) &&
+        (draft || (a.school.trim() && a.type.trim() && /^\d{4}-\d{2}-\d{2}$/.test(a.date) &&
         new Date(a.date + "T12:00:00Z").toISOString().slice(0,10) === a.date &&
         Number.isInteger(Number(a.participants)) && Number(a.participants) > 0 &&
         Number(a.participants) <= 100000 && Number.isInteger(Number(a.volunteers)) &&
@@ -319,7 +319,7 @@
       badgeTemplates.forEach(b => {
         badgesContainer.innerHTML += `
           <span class="px-2 py-0.5 rounded-full ${b.bg} ${b.color} border text-[9px] font-bold flex items-center gap-1 cursor-pointer" title="${b.title}">
-            <i class="fa-solid ${b.icon}"></i> ${b.title}
+            <i aria-hidden="true" class="fa-solid ${b.icon}"></i> ${b.title}
           </span>
         `;
       });
@@ -425,7 +425,7 @@
       setSafeText("side-active-count", filtered.length);
 
       // Gelişmiş Üçlü Grafik Güncelleme Motoru (Deterministik AI Algoritması ile)
-      drawTurkeyCitiesMap(currentSelectionName);
+      drawTurkeyCitiesMap(currentSelectionName, filtered);
       renderAnalyticsCharts(selectedCityFilter, selectedLevelFilter, selectedSchoolFilter, selectedTypeFilter, selectedDateFilter, filtered);
     }
 
@@ -583,14 +583,14 @@
     }
 
     // 81 İl Düğüm Haritası Oluşturucu ( Constellation/Bubble Yapısında)
-    function drawTurkeyCitiesMap(activeCityName) {
+    function drawTurkeyCitiesMap(activeCityName, records = dbActivities) {
       const group = document.getElementById("map-cities-nodes-group");
       if (!group) return;
       group.innerHTML = "";
 
       // Şehirlerin faaliyet sayılarını hesapla (Boyutlandırma için)
       const cityActivityCounts = {};
-      dbActivities.forEach(act => {
+      records.forEach(act => {
         cityActivityCounts[act.city] = (cityActivityCounts[act.city] || 0) + 1;
       });
 
@@ -799,7 +799,7 @@
           <div class="flex justify-between items-center border-b pb-3 border-gray-150">
             <span class="text-xs font-black text-gray-800 bg-gray-100 px-3 py-1 rounded-full">${index + 1}. Rapor Kartı</span>
             <button onclick="removeFormCard('${card.id}')" class="text-red-500 hover:text-red-755 text-xs font-bold transition flex items-center gap-1">
-              <i class="fa-solid fa-trash-can"></i> Sil
+              <i aria-hidden="true" class="fa-solid fa-trash-can"></i> Sil
             </button>
           </div>
 
@@ -961,8 +961,8 @@
           <td class="py-3.5"><span class="bg-green-50 text-green-700 px-2.5 py-1 rounded-full border border-green-100 text-[10px] font-semibold">${escapeHtml(act.type)}</span></td>
           <td class="py-3.5 font-bold text-slate-900">${escapeHtml(act.participants)} Kişi</td>
           <td class="py-3.5 text-right space-x-2">
-            <button onclick="openEditModal('${act.id}')" class="text-blue-500 hover:text-blue-700 transition font-bold text-[11px]"><i class="fa-solid fa-pen-to-square"></i> Düzenle</button>
-            <button onclick="deleteActivity('${act.id}')" class="text-red-500 hover:text-red-700 transition font-bold text-[11px]"><i class="fa-solid fa-trash-can"></i> Sil</button>
+            <button onclick="openEditModal('${act.id}')" class="text-blue-500 hover:text-blue-700 transition font-bold text-[11px]"><i aria-hidden="true" class="fa-solid fa-pen-to-square"></i> Düzenle</button>
+            <button aria-label="Sil" onclick="deleteActivity('${act.id}')" class="text-red-500 hover:text-red-700 transition font-bold text-[11px]"><i aria-hidden="true" class="fa-solid fa-trash-can"></i> Sil</button>
           </td>
         `;
         tableBody.appendChild(tr);
