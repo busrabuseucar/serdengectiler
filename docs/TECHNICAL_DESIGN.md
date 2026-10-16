@@ -1,6 +1,6 @@
 # Teknik kararlar ve sınırlar
 
-## Anlatılabilecek mühendislik kararları
+## Mimari kararlar
 
 - Küçük bir statik prototipte framework yerine DOM tabanlı arayüz. HTML ile davranış kodu ayrı dosyalara taşındı.
 - Taslaklar demo rolüne göre ayrılır; raporlar aynı tarayıcıdaki veri kümesindedir. Yeni kayıt ve taslak temizliği tek localStorage yazısıyla kaydedilir.
@@ -19,8 +19,4 @@ Taslak düğmesi yalnızca mesaj gösteriyordu. Raporlar bellekte kalıp yenilem
 
 Gerçek kimlik doğrulama, backend veritabanı, her istekte rol/şehir denetimi, audit log, yedekleme ve veri saklama politikası gerekir. localStorage merkezi bir raporlama altyapısı değildir; kötü amaçlı kullanıcıdan veriyi korumaz. Eşzamanlı yazma kontrolü en iyi çabadır, transaction değildir.
 
-Sesli yazım gerçek mikrofon ve hedef tarayıcıyla ayrıca denenmelidir. Otomatik alan çıkarımı ve bilgisayarlı görü bu sürümde uygulanmış özellik değildir. Bunları mülakatta yapılmış gibi anlatma.
-
-## Gösterim
-
-Bir rol seç, form doldur, taslağı kaydet, yenile ve tekrar aç. Raporu kaydet; kaydı düzenle ve CSV indir. Negatif adet deneyerek reddedildiğini göster. Son olarak yerel demo ile sunucu tarafından korunan gerçek sistem arasındaki farkı anlat.
+Sesli yazım gerçek mikrofon ve hedef tarayıcıyla ayrıca denenmelidir. Otomatik alan çıkarımı ve bilgisayarlı görü bu sürümde uygulanmış özellik değildir.

@@ -64,6 +64,6 @@ DOM testleri saklama/yenileme, CRUD, geçersiz veriler, depolama hatası, metin 
 
 Dosyalar: index.html (arayüz), app.js (durum/işlevler), styles/ (yerel CSS), tests/ ve e2e/ (testler).
 
-[Teknik kararlar ve mülakat notları](docs/INTERVIEW.md)
+[Teknik Tasarım ve Kararlar](docs/TECHNICAL_DESIGN.md)
 
 Geliştirici: **Büşra Buse Uçar**
